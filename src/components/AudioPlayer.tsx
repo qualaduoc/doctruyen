@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipForward, SkipBack, Share2, ArrowLeft, Gauge } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, ArrowLeft, Gauge, Activity } from "lucide-react";
 
 interface AudioPlayerProps {
   title: string;
@@ -17,13 +17,12 @@ export default function AudioPlayer({ title, chunks, nextUrl, onNextChapter, onB
   const [speed, setSpeed] = useState(1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Khởi tạo media session cho màn hình khóa
   useEffect(() => {
     if ("mediaSession" in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
-        artist: "Audio-Truyen PWA",
-        album: `Phần ${currentChunkIndex + 1}/${chunks.length}`,
+        artist: "Auto Scraper TTS",
+        album: `Đoạn ${currentChunkIndex + 1}/${chunks.length}`,
         artwork: [
           { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" }
         ]
@@ -36,7 +35,6 @@ export default function AudioPlayer({ title, chunks, nextUrl, onNextChapter, onB
     }
   }, [title, currentChunkIndex, chunks.length]);
 
-  // Cập nhật tốc độ ngay khi user bấm đổi, hoặc khi audio mới load
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = speed;
@@ -77,7 +75,6 @@ export default function AudioPlayer({ title, chunks, nextUrl, onNextChapter, onB
     if (currentChunkIndex < chunks.length - 1) {
       setCurrentChunkIndex((prev) => prev + 1);
     } else if (nextUrl) {
-      // Gọi fetch chương mới
       onNextChapter(nextUrl);
     }
   };
@@ -88,105 +85,132 @@ export default function AudioPlayer({ title, chunks, nextUrl, onNextChapter, onB
     }
   };
 
-  // Đặc biệt: khi chunks thay đổi (chuyển chương mới), reset index về 0 và bóp Cò play
   useEffect(() => {
     setCurrentChunkIndex(0);
     setIsPlaying(true);
   }, [chunks]);
 
-
-  const progress = chunks.length > 0 ? ((currentChunkIndex) / (chunks.length - 1 || 1)) * 100 : 0;
   const currentSrc = chunks[currentChunkIndex] ? getAudioUrl(chunks[currentChunkIndex]) : "";
 
   return (
-    <div className="flex flex-col space-y-8 animate-in fade-in zoom-in-95 duration-300">
-      <div className="flex justify-between items-start">
-        <button onClick={onBack} className="p-2 text-gray-400 hover:text-white transition-colors">
-          <ArrowLeft size={24} />
-        </button>
-        <button onClick={toggleSpeed} className="flex items-center gap-1 p-2 text-[#ff6600] hover:text-[#ff6600]/80 transition-colors font-bold bg-[#ff6600]/10 rounded-lg">
-          <Gauge size={20} />
-          {speed}x
-        </button>
-      </div>
-
-      <div className="text-center space-y-4">
-        <div className="w-32 h-32 mx-auto bg-gradient-to-br from-[#ff6600] to-orange-400 rounded-3xl shadow-lg shadow-[#ff6600]/20 flex items-center justify-center overflow-hidden">
-             <div className="text-4xl font-black text-white/50">{currentChunkIndex + 1}</div>
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-white line-clamp-2">{title}</h2>
-          <p className="text-gray-400 text-sm mt-1">Đang đọc đoạn {currentChunkIndex + 1}/{chunks.length}</p>
-        </div>
-      </div>
-
-      {/* Progress Bar (Tua) */}
-      <div className="space-y-2">
-        <input 
-          type="range"
-          min="0"
-          max={Math.max(0, chunks.length - 1)}
-          value={currentChunkIndex}
-          onChange={(e) => {
-            setCurrentChunkIndex(parseInt(e.target.value));
-            if (!isPlaying) setIsPlaying(true); // Đã tua thì cho hát luôn
-          }}
-          className="w-full h-2 rounded-full appearance-none outline-none bg-gray-800 cursor-pointer accent-[#ff6600]" 
-          // Note: Standard tailwind appearance-none works well. 
-        />
-        <div className="flex justify-between text-xs text-gray-500 font-medium">
-          <span>{currentChunkIndex + 1}</span>
-          <span>{chunks.length}</span>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center justify-center gap-6">
+    <div className="flex flex-col h-full justify-between animate-in fade-in zoom-in-95 duration-500 pt-2 pb-6">
+      
+      {/* Top Bar - Glassmorphism */}
+      <div className="flex justify-between items-center mb-8 relative z-20">
         <button 
-          onClick={handlePrev}
-          disabled={currentChunkIndex === 0}
-          className="p-4 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+          onClick={onBack} 
+          className="w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center text-white transition-all shadow-lg"
         >
-          <SkipBack size={32} />
+          <ArrowLeft size={22} className="opacity-80" />
         </button>
         
-        <button 
-          onClick={togglePlay}
-          className="w-20 h-20 rounded-full bg-[#ff6600] text-white flex items-center justify-center shadow-lg shadow-[#ff6600]/30 hover:scale-105 transition-transform"
-        >
-          {isPlaying ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" className="ml-2" />}
-        </button>
+        <div className="px-5 py-2.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex items-center gap-2 shadow-lg">
+           <Activity size={16} className={isPlaying ? "text-[#ff6600] animate-pulse" : "text-white/40"} />
+           <span className="text-xs font-semibold tracking-wider text-white/80 uppercase">Now Reading</span>
+        </div>
 
         <button 
-          onClick={handleNext}
-          className="p-4 text-gray-400 hover:text-white transition-colors"
+          onClick={toggleSpeed} 
+          className="w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 rounded-full flex flex-col items-center justify-center text-[#ff6600] transition-all shadow-lg"
         >
-          <SkipForward size={32} />
+          <Gauge size={16} className="mb-0.5 opacity-80" />
+          <span className="text-[10px] font-black">{speed}x</span>
         </button>
       </div>
 
-      {nextUrl ? (
-        <button 
-          onClick={() => onNextChapter(nextUrl)}
-          className="w-full py-4 mt-2 bg-[#ff6600]/10 hover:bg-[#ff6600]/20 border border-[#ff6600]/30 text-[#ff6600] rounded-xl font-bold transition-all flex justify-center items-center gap-2"
-        >
-          Chuyển sang Nhâm nhi chương tiếp <SkipForward size={20} />
-        </button>
-      ) : (
-        <div className="text-center text-xs text-gray-500 bg-gray-800/50 p-3 rounded-xl">
-          Chưa tìm thấy link chương tiếp
+      {/* Album Artwork - Glass panel */}
+      <div className="flex-1 flex flex-col items-center justify-center space-y-10 relative z-10 w-full mb-8">
+        <div className="w-[200px] h-[200px] bg-white/5 backdrop-blur-2xl border border-white/20 rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(255,102,0,0.3)] flex flex-col items-center justify-center p-6 relative overflow-hidden group">
+             {/* Vibrant gradient underlying */}
+             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/30 via-transparent to-[#ff6600]/30 opacity-70 group-hover:opacity-100 transition-opacity duration-700" />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_50%)]" />
+             <div className="text-7xl font-black text-white/90 drop-shadow-lg relative z-10 font-sans tracking-tighter">
+                {currentChunkIndex + 1}
+             </div>
+             <div className="absolute bottom-4 text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mix-blend-overlay">Chunk</div>
         </div>
-      )}
 
-      {/* Hidden Audio Element */}
+        <div className="text-center w-full px-2">
+          <h2 className="text-2xl font-bold text-white line-clamp-3 leading-snug drop-shadow-md">{title}</h2>
+          <p className="text-white/40 text-sm mt-3 font-medium uppercase tracking-widest">Đoạn {currentChunkIndex + 1} / {chunks.length}</p>
+        </div>
+      </div>
+
+      {/* Controls & Progress - Glassmorphism */}
+      <div className="w-full relative z-20 space-y-8">
+        
+        {/* Progress Scrub Bar */}
+        <div className="space-y-3 px-2">
+           <input 
+            type="range"
+            min="0"
+            max={Math.max(0, chunks.length - 1)}
+            value={currentChunkIndex}
+            onChange={(e) => {
+              setCurrentChunkIndex(parseInt(e.target.value));
+              if (!isPlaying) setIsPlaying(true);
+            }}
+            className="w-full h-1.5 rounded-full appearance-none outline-none bg-white/10 cursor-pointer accent-[#ff6600] shadow-[0_0_15px_rgba(255,102,0,0.4)]" 
+          />
+          <div className="flex justify-between text-[11px] text-white/40 font-bold tracking-wider">
+            <span>{currentChunkIndex + 1}</span>
+            <span>{chunks.length}</span>
+          </div>
+        </div>
+
+        {/* Playback Buttons */}
+        <div className="flex items-center justify-center gap-6">
+          <button 
+            onClick={handlePrev}
+            disabled={currentChunkIndex === 0}
+            className="w-14 h-14 bg-white/5 hover:bg-white/10 disabled:opacity-30 backdrop-blur-xl border border-white/10 text-white rounded-full flex items-center justify-center transition-all shadow-lg"
+          >
+            <SkipBack fill="currentColor" size={20} className="opacity-80" />
+          </button>
+          
+          <button 
+            onClick={togglePlay}
+            className="w-20 h-20 bg-gradient-to-br from-[#ff6600] to-rose-600 shadow-[0_10px_30px_-10px_rgba(255,102,0,0.8)] border border-white/30 text-white rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95 relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.4),transparent_60%)]" />
+            {isPlaying ? (
+              <Pause size={30} fill="currentColor" className="relative z-10" />
+            ) : (
+              <Play size={30} fill="currentColor" className="ml-2 relative z-10" />
+            )}
+          </button>
+
+          <button 
+            onClick={handleNext}
+            className="w-14 h-14 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-full flex items-center justify-center transition-all shadow-lg"
+          >
+            <SkipForward fill="currentColor" size={20} className="opacity-80" />
+          </button>
+        </div>
+
+        {/* Chuyển chương Button */}
+        {nextUrl ? (
+          <button 
+            onClick={() => onNextChapter(nextUrl)}
+            className="w-full mt-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white/90 rounded-2xl font-bold transition-all flex justify-center items-center gap-3 shadow-lg group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+            Chuyển qua Chương kế <SkipForward size={18} className="text-[#ff6600]" />
+          </button>
+        ) : (
+          <div className="text-center text-xs text-white/30 bg-white/5 backdrop-blur-md border border-white/5 p-4 rounded-2xl mt-6 uppercase tracking-wider font-semibold">
+            Đã quét tận tới rốn (Hết link)
+          </div>
+        )}
+      </div>
+
+      {/* Hidden Audio Streamer */}
       <audio 
         ref={audioRef}
         src={currentSrc}
         autoPlay={isPlaying}
         onLoadedData={(e) => {
-          // Khi track mới tải xong, ốp luôn cái speed vào
           e.currentTarget.playbackRate = speed;
-          // Trên Safari/iOS autoPlay đôi khi xịt, bắn bồi thêm lệnh play nếu đang chế độ isPlaying
           if (isPlaying) {
              e.currentTarget.play().catch(console.error);
           }
@@ -195,6 +219,7 @@ export default function AudioPlayer({ title, chunks, nextUrl, onNextChapter, onB
         className="hidden"
         preload="auto"
       />
+
     </div>
   );
 }

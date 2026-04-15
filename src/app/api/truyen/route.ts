@@ -25,22 +25,32 @@ export async function GET(request: NextRequest) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // Xử lý bóc tách nội dung
-    // Dựa vào HTML phổ biến của truyện
-    let rawTitle = $("title").text().trim() || $("h1").text().trim();
-    let title = rawTitle
-      .replace(/\s*-\s*Wattpad(\.com)?\.vn/i, "") // Xóa rác đuôi domain
-      .replace(/\s*\|\s*Wattpad/i, "")
+    // 1. Tối ưu Tên Chương
+    let title = $("title").text().trim() || $("h1").text().trim();
+    title = title
+      .replace(/\s*-\s*[a-zA-Z0-9]+\.[a-zA-Z]+/i, "") // Xóa '- domain.com'
+      .replace(/\s*-\s*Đọc Truyện.*$/i, "")
+      .replace(/\s*-\s*Truyện.*$/i, "")
+      .replace(/\s*-\s*Wattpad.*$/i, "")
+      .replace(/\s*\|\s*Truyện.*$/i, "")
       .trim();
-    // Tìm URL của chương tiếp theo
-    // Wattpad clone thường dùng <a> có chữ Chương tiếp
+
+    // 2. Tối ưu Nút Next (Nhiều keyword hơn)
     let nextUrl = "";
     $("a").each((_, el) => {
-      const linkText = $(el).text().toLowerCase();
-      if (linkText.includes("chương tiếp") || linkText.includes("chương sau") || linkText.includes("next chapter")) {
+      const linkText = $(el).text().toLowerCase().trim();
+      if (
+        linkText === "chương tiếp" ||
+        linkText === "chương sau" ||
+        linkText.includes("chương tiếp") ||
+        linkText.includes("chương sau") ||
+        linkText === "tiếp >>" ||
+        linkText === "tiếp" ||
+        linkText === "next chapter" ||
+        linkText.includes("chương kế")
+      ) {
         const href = $(el).attr("href");
-        if (href) {
-          // Xử lý link tương đối
+        if (href && href !== "#" && !href.includes("javascript")) {
           if (href.startsWith("http")) {
             nextUrl = href;
           } else if (href.startsWith("/")) {
@@ -54,22 +64,82 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Lấy nội dung
-    // Các trang web truyện thường ném trong div content và có rất nhiều thẻ <p>
-    let contentTexts: string[] = [];
-    
-    // Clean up rác quảng cáo
-    $("script, style, iframe, .ads, .comment").remove();
+    // 3. Quét rác sơ bộ
+    $("script, style, iframe, .ads, .comment, noscript, nav, header, footer").remove();
 
-    $("p").each((_, el) => {
+    // 4. Tìm Container chứa Text nội dung
+    let contentTexts: string[] = [];
+    let contentNode: any = null;
+    
+    // Hệ thống Selectors phổ biến của TruyenFull, TangThuVien, Wattpad, Metruyenchu...
+    const knownSelectors = [
+      '#chapter-c', '.chapter-c', '.chapter-content', '#chr-content', 
+      '.reading-content', '#box-chap', '.nd-chap', 'div[itemprop="articleBody"]',
+      '.txt-body'
+    ];
+    
+    for (const sel of knownSelectors) {
+      if ($(sel).length > 0) {
+        contentNode = $(sel).first();
+        break;
+      }
+    }
+    
+    // Cơ Chế Fallback: Điểm danh thẻ chứa nhiều <p> nhất nếu không trúng phóc Selector nào
+    if (!contentNode) {
+      let maxP = 0;
+      let targetDiv = null;
+      $("div, article, section").each((_, el) => {
+        const pCount = $(el).find("p").length;
+        if (pCount > maxP) {
+          maxP = pCount;
+          targetDiv = el;
+        }
+      });
+      if (targetDiv && maxP > 2) {
+        contentNode = $(targetDiv);
+      } else {
+        contentNode = $("body");
+      }
+    }
+
+    // Lẩy từng thẻ p
+    contentNode.find("p").each((_, el) => {
       const text = $(el).text().trim();
-      // Bỏ qua các đoạn text quá ngắn hoặc mang tính chất nút bấm
-      if (text.length > 10 && !text.toLowerCase().includes("chương trước") && !text.toLowerCase().includes("chương tiếp")) {
+      // Loại trừ các câu thừa hay có trong list
+      const lower = text.toLowerCase();
+      if (
+        text.length > 5 &&
+        !lower.includes("chương trước") &&
+        !lower.includes("chương tiếp") &&
+        !lower.includes("đọc truyện tại")
+      ) {
         contentTexts.push(text);
       }
     });
 
+    // Nếu tụi nó không xài thẻ p mà xài thụt dòng <br> thô bỉ?
+    if (contentTexts.length === 0) {
+      const rawHtml = contentNode.html() || "";
+      rawHtml.split(/<br\s*\/?>/i).forEach((frag: string) => {
+        const t = cheerio.load(frag).text().trim();
+        const lower = t.toLowerCase();
+        if (
+          t.length > 5 &&
+          !lower.includes("chương trước") &&
+          !lower.includes("chương tiếp") &&
+          !lower.includes("đọc truyện tại")
+        ) {
+          contentTexts.push(t);
+        }
+      });
+    }
+
     const fullText = contentTexts.join("\n\n");
+    if (!fullText || fullText.length < 50) {
+       return NextResponse.json({ success: false, error: "Không thể trích xuất nội dung từ link này. Có thể website đang sử dụng cơ chế bảo mật cấm cào." }, { status: 400 });
+    }
+
     const chunks = chunkText(fullText, 200);
 
     return NextResponse.json({
