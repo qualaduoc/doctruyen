@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Tối ưu Nút Next (Nhiều keyword hơn)
     let nextUrl = "";
-    $("a").each((_, el) => {
+    $("a").each((_: number, el: any) => {
       const linkText = $(el).text().toLowerCase().trim();
       if (
         linkText === "chương tiếp" ||
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     if (!contentNode) {
       let maxP = 0;
       let targetDiv = null;
-      $("div, article, section").each((_, el) => {
+      $("div, article, section").each((_: number, el: any) => {
         const pCount = $(el).find("p").length;
         if (pCount > maxP) {
           maxP = pCount;
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Lẩy từng thẻ p
-    contentNode.find("p").each((_, el) => {
+    contentNode.find("p").each((_: number, el: any) => {
       const text = $(el).text().trim();
       // Loại trừ các câu thừa hay có trong list
       const lower = text.toLowerCase();
