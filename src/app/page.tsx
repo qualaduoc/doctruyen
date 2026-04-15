@@ -112,7 +112,7 @@ export default function Home() {
           ) : (
             <AudioPlayer 
               title={truyenData.title}
-              chunks={truyenData.chunks}
+              targetUrl={url}
               nextUrl={truyenData.nextUrl}
               onNextChapter={handleNextChapter}
               onBack={() => setTruyenData(null)}
