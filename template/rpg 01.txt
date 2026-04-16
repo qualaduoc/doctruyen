@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "pixel-green": "#39ff14",
+                        "pixel-purple": "#702283",
+                        "pixel-dark-purple": "#2d004d",
+                        "pixel-black": "#0c001a",
+                        "pixel-gray": "#3d3d52",
+                    },
+                    fontFamily: {
+                        "pixel": ["'Press Start 2P'", "cursive"],
+                        "blocky": ["'VT323'", "monospace"],
+                    }
+                },
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                background-color: #0c001a;
+                color: #39ff14;
+                image-rendering: pixelated;
+                font-family: 'VT323', monospace;
+            }
+        }
+        .pixel-border {
+            border: 4px solid #702283;
+            box-shadow: 
+                inset -4px -4px 0px 0px #2d004d,
+                inset 4px 4px 0px 0px #a136bd,
+                4px 0px 0px 0px #0c001a,
+                -4px 0px 0px 0px #0c001a,
+                0px 4px 0px 0px #0c001a,
+                0px -4px 0px 0px #0c001a;
+        }
+        .pixel-btn {
+            background: #702283;
+            border: 4px solid #0c001a;
+            box-shadow: 
+                inset -4px -4px 0px 0px #2d004d,
+                inset 4px 4px 0px 0px #a136bd;
+            image-rendering: pixelated;
+        }
+        .pixel-btn:active {
+            box-shadow: 
+                inset 4px 4px 0px 0px #2d004d,
+                inset -4px -4px 0px 0px #a136bd;
+            transform: translateY(2px);
+        }
+        .heart-container {
+            display: flex;
+            gap: 4px;
+        }
+        .pixel-heart {
+            width: 24px;
+            height: 24px;
+            background-color: #ff0040;
+            clip-path: polygon(
+                0 25%, 0 50%, 12.5% 50%, 12.5% 62.5%, 25% 62.5%, 25% 75%, 37.5% 75%, 37.5% 87.5%, 50% 87.5%, 50% 100%, 62.5% 100%, 62.5% 87.5%, 75% 87.5%, 75% 75%, 87.5% 75%, 87.5% 62.5%, 100% 62.5%, 100% 50%, 100% 25%, 87.5% 25%, 87.5% 12.5%, 75% 12.5%, 75% 0, 62.5% 0, 62.5% 12.5%, 50% 12.5%, 50% 25%, 37.5% 25%, 37.5% 12.5%, 25% 12.5%, 25% 0, 12.5% 0, 12.5% 12.5%, 0 12.5%
+            );
+        }
+        .pixel-heart.empty {
+            background-color: #3d3d52;
+        }
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .block-header {
+            background: repeating-linear-gradient(45deg, #2d004d, #2d004d 10px, #702283 10px, #702283 20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen">
+<div class="scanlines"></div>
+<header class="block-header border-b-4 border-pixel-green h-16 flex items-center justify-between px-4 z-50">
+<div class="flex items-center gap-3">
+<button class="pixel-btn p-1 text-white">
+<span class="material-symbols-outlined !text-xl">menu</span>
+</button>
+<span class="font-pixel text-[10px] text-pixel-green">DUNGEON STATUS</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="text-[14px] font-pixel text-white">LVL 42</div>
+<button class="pixel-btn p-1 text-white">
+<span class="material-symbols-outlined !text-xl">person</span>
+</button>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center px-4 py-6 max-w-md mx-auto w-full">
+<div class="w-full mb-6 pixel-border bg-pixel-dark-purple p-4 relative">
+<div class="flex items-center gap-2 text-pixel-green mb-2">
+<span class="material-symbols-outlined text-sm">scrollable_header</span>
+<span class="font-pixel text-[8px] uppercase tracking-tighter">Current Floor: 42</span>
+</div>
+<h2 class="text-3xl font-pixel text-white uppercase leading-tight mb-1">Người Trên Vạn Người</h2>
+<div class="text-pixel-green font-blocky text-lg">Guild: Thiên Môn Group</div>
+</div>
+<div class="relative w-full aspect-square mb-8">
+<div class="absolute -top-2 -left-2 w-8 h-8 bg-pixel-green z-20" style="clip-path: polygon(0 0, 100% 0, 100% 25%, 25% 25%, 25% 100%, 0 100%);"></div>
+<div class="absolute -top-2 -right-2 w-8 h-8 bg-pixel-green z-20" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 75% 100%, 75% 25%, 0 25%);"></div>
+<div class="absolute -bottom-2 -left-2 w-8 h-8 bg-pixel-green z-20" style="clip-path: polygon(0 0, 25% 0, 25% 75%, 100% 75%, 100% 100%, 0 100%);"></div>
+<div class="absolute -bottom-2 -right-2 w-8 h-8 bg-pixel-green z-20" style="clip-path: polygon(75% 0, 100% 0, 100% 100%, 0 100%, 0 75%, 75% 75%);"></div>
+<div class="w-full h-full pixel-border bg-black overflow-hidden relative">
+<img alt="Story Art" class="w-full h-full object-cover grayscale brightness-50 contrast-125" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgdsCVW2xLjc6LCw97pWdSYlAZE-ZnYcmc6zQ81lxU10sdtE6UMy8cU_NLbtOFsn_WHiId3pijCGFOZtfhRspUUa_1F0z0TKmDyaZtGwXjcdDspq6CmpFHb8nSL5y9t2FOC6K8DvK1HhVo3BKJ_Dke8xHA6M3gLegeN7JBaNZUBOfV92uxpEbzxAM_WLMufO1EGaXe390LYOwKMvf4GcJuL5GHIeoHKHBIlJSvNa6FPuTcMlnJ9d8B0FANccTqjHE8T3k0dldfUEQ"/>
+<div class="absolute top-4 left-4 font-pixel text-[8px] bg-pixel-purple px-2 py-1 border-2 border-white text-white">
+                    QUEST_ING
+                </div>
+<div class="absolute bottom-4 right-4 font-pixel text-[8px] bg-pixel-black px-2 py-1 border-2 border-pixel-green text-pixel-green">
+                    SAVE_SLOT: 01
+                </div>
+</div>
+</div>
+<div class="w-full mb-8">
+<div class="flex justify-between items-center mb-2 font-pixel text-[8px] text-pixel-green">
+<span>HP: 1245 / 3105</span>
+<span class="text-white">STAGE 42%</span>
+</div>
+<div class="pixel-border bg-pixel-black p-3 flex flex-wrap justify-center items-center gap-2">
+<div class="heart-container">
+<div class="pixel-heart"></div>
+<div class="pixel-heart"></div>
+<div class="pixel-heart"></div>
+<div class="pixel-heart"></div>
+<div class="pixel-heart"></div>
+<div class="pixel-heart empty"></div>
+<div class="pixel-heart empty"></div>
+<div class="pixel-heart empty"></div>
+<div class="pixel-heart empty"></div>
+<div class="pixel-heart empty"></div>
+</div>
+</div>
+<div class="flex justify-between mt-2 font-blocky text-2xl text-white">
+<span>12:45</span>
+<span class="text-pixel-purple">-18:20</span>
+</div>
+</div>
+<div class="flex items-center justify-between w-full mb-10">
+<button class="pixel-btn w-12 h-12 flex items-center justify-center text-white">
+<span class="material-symbols-outlined !text-2xl">replay_10</span>
+</button>
+<div class="flex items-center gap-6">
+<button class="text-pixel-green hover:scale-110">
+<span class="material-symbols-outlined !text-4xl" style="font-variation-settings: 'FILL' 1;">skip_previous</span>
+</button>
+<button class="w-24 h-24 pixel-btn flex flex-col items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-0 bg-pixel-green/10 opacity-0 group-hover:opacity-100"></div>
+<span class="material-symbols-outlined !text-5xl text-white mb-1" style="font-variation-settings: 'FILL' 1;">swords</span>
+<span class="font-pixel text-[8px] text-white">EXECUTE</span>
+</button>
+<button class="text-pixel-green hover:scale-110">
+<span class="material-symbols-outlined !text-4xl" style="font-variation-settings: 'FILL' 1;">skip_next</span>
+</button>
+</div>
+<button class="pixel-btn w-12 h-12 flex items-center justify-center text-white">
+<span class="material-symbols-outlined !text-2xl">forward_30</span>
+</button>
+</div>
+<button class="w-full pixel-btn bg-pixel-dark-purple p-5 flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-pixel-green flex items-center justify-center border-4 border-black">
+<span class="material-symbols-outlined text-black font-bold">bolt</span>
+</div>
+<div class="text-left">
+<div class="text-[8px] font-pixel text-pixel-green mb-1">PROCEED TO</div>
+<div class="text-xl font-pixel text-white">NEXT FLOOR</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-pixel-green text-3xl group-hover:translate-x-2 transition-transform">double_arrow</span>
+</button>
+</main>
+<nav class="fixed bottom-0 w-full z-50 bg-pixel-black border-t-4 border-pixel-purple h-20 flex justify-around items-center">
+<a class="flex flex-col items-center gap-1 text-pixel-gray hover:text-pixel-green" href="#">
+<span class="material-symbols-outlined">fort</span>
+<span class="font-pixel text-[6px]">QUESTS</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-pixel-gray hover:text-pixel-green" href="#">
+<span class="material-symbols-outlined">shield</span>
+<span class="font-pixel text-[6px]">EQUIP</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-pixel-gray hover:text-pixel-green" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-pixel text-[6px]">MAP</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-white bg-pixel-purple px-4 py-2 border-2 border-pixel-green" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">book</span>
+<span class="font-pixel text-[6px]">LOG</span>
+</a>
+</nav>
+
+</body></html>

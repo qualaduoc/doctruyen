@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;family=Cinzel:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00f0ff",
+                        "on-surface": "#e2e0fc",
+                        "background": "#08080f",
+                        "surface-variant": "rgba(255, 255, 255, 0.05)",
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "vintage": ["Cinzel"],
+                        "body": ["Manrope"],
+                    }
+                },
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl;
+            }
+            .mana-glow {
+                box-shadow: 0 0 25px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.5);
+            }
+            .ornamental-border {
+                background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0);
+                background-size: 24px 24px;
+            }
+        }
+        body {
+            background-color: #08080f;
+            color: #e2e0fc;
+            overflow: hidden;
+        }
+        .vintage-corner {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            position: absolute;
+        }
+        .v-tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-width: 2px; border-left-width: 2px; }
+        .v-tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-width: 2px; border-right-width: 2px; }
+        .v-bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-width: 2px; border-left-width: 2px; }
+        .v-br { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-width: 2px; border-right-width: 2px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col h-screen font-body selection:bg-primary/30">
+<div class="fixed inset-0 z-0 opacity-40 bg-[radial-gradient(circle_at_50%_-20%,#004e58_0%,#08080f_70%)]"></div>
+<header class="relative z-50 flex justify-between items-center px-6 h-14 w-full">
+<button class="text-white/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">menu_open</span>
+</button>
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-headline tracking-[0.4em] text-primary/60 font-bold">MANHWA ARCHIVE</span>
+</div>
+<button class="text-white/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">settings_input_component</span>
+</button>
+</header>
+<main class="relative z-10 flex-grow flex flex-col items-center px-4 pt-2 pb-8">
+<div class="relative w-full h-[618px] max-w-md mx-auto group">
+<div class="absolute -inset-3 pointer-events-none">
+<div class="vintage-corner v-tl"></div>
+<div class="vintage-corner v-tr"></div>
+<div class="vintage-corner v-bl"></div>
+<div class="vintage-corner v-br"></div>
+<div class="absolute top-1/2 -left-1 w-2 h-12 bg-primary/20 -translate-y-1/2"></div>
+<div class="absolute top-1/2 -right-1 w-2 h-12 bg-primary/20 -translate-y-1/2"></div>
+</div>
+<div class="w-full h-full overflow-hidden relative glass-panel shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+<img alt="Cover Art" class="w-full h-full object-cover scale-105 contrast-125 brightness-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgdsCVW2xLjc6LCw97pWdSYlAZE-ZnYcmc6zQ81lxU10sdtE6UMy8cU_NLbtOFsn_WHiId3pijCGFOZtfhRspUUa_1F0z0TKmDyaZtGwXjcdDspq6CmpFHb8nSL5y9t2FOC6K8DvK1HhVo3BKJ_Dke8xHA6M3gLegeN7JBaNZUBOfV92uxpEbzxAM_WLMufO1EGaXe390LYOwKMvf4GcJuL5GHIeoHKHBIlJSvNa6FPuTcMlnJ9d8B0FANccTqjHE8T3k0dldfUEQ"/>
+<div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
+<div class="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none">
+<div class="glass-panel px-3 py-1 flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+<span class="text-[9px] font-headline font-bold tracking-widest text-white/80">CHANNEL: ALPHA</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-vintage text-primary text-xs tracking-widest opacity-80 mb-1 uppercase">Chapter 42</span>
+<div class="h-px w-8 bg-primary/40"></div>
+</div>
+</div>
+<div class="absolute bottom-10 left-8 right-8 space-y-2">
+<h1 class="text-4xl font-vintage font-bold text-white tracking-tight leading-none drop-shadow-lg">Người Trên Vạn Người</h1>
+<p class="text-primary/70 font-headline text-[11px] font-medium tracking-[0.2em] uppercase">The Celestial Monarch</p>
+</div>
+</div>
+</div>
+<div class="w-full max-w-md mt-auto pt-6 px-4">
+<div class="relative flex flex-col items-center">
+<div class="w-full flex justify-between items-center mb-6 px-2 text-[10px] font-headline tracking-widest text-white/30">
+<span>12:45</span>
+<div class="flex-grow mx-4 h-0.5 bg-white/10 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[40%] bg-primary shadow-[0_0_10px_#00f0ff]"></div>
+</div>
+<span>-18:20</span>
+</div>
+<div class="relative group">
+<button class="relative w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mana-glow border border-primary/40 hover:scale-105 active:scale-95 transition-all duration-300">
+<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/40 to-transparent blur-sm"></div>
+<span class="material-symbols-outlined text-primary text-4xl leading-none relative z-10" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-between w-64 pointer-events-none">
+<button class="pointer-events-auto p-3 text-white/20 hover:text-primary transition-colors flex items-center">
+<span class="material-symbols-outlined text-2xl">keyboard_double_arrow_left</span>
+</button>
+<button class="pointer-events-auto p-3 text-white/20 hover:text-primary transition-colors flex items-center">
+<span class="material-symbols-outlined text-2xl">keyboard_double_arrow_right</span>
+</button>
+</div>
+</div>
+<div class="mt-8 flex gap-12 text-white/30">
+<button class="hover:text-primary transition-colors flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">auto_stories</span>
+<span class="text-[8px] font-headline font-bold">LOG</span>
+</button>
+<button class="hover:text-primary transition-colors flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">share_windows</span>
+<span class="text-[8px] font-headline font-bold">SYMBOLS</span>
+</button>
+<button class="hover:text-primary transition-colors flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-xl">queue_music</span>
+<span class="text-[8px] font-headline font-bold">LIST</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<footer class="h-6 w-full opacity-30 ornamental-border relative">
+<div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+</footer>
+
+</body></html>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import AudioPlayer from "@/components/AudioPlayer";
-import { Headphones, Loader2, Link as LinkIcon, BookOpen, Fingerprint } from "lucide-react";
+import { useState, useEffect } from "react";
+import ThemeGlass from "@/components/themes/ThemeGlass";
+import ThemeRetro1 from "@/components/themes/ThemeRetro1";
+import ThemeRetro2 from "@/components/themes/ThemeRetro2";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -13,6 +15,22 @@ export default function Home() {
     chunks: string[];
     nextUrl: string | null;
   } | null>(null);
+
+  // Giao diện (Theme)
+  const [theme, setTheme] = useState("glass");
+  const [themeOpen, setThemeOpen] = useState(false);
+
+  useEffect(() => {
+    // Load ưu tiên theme từ máy
+    const t = localStorage.getItem("audio_truyen_theme");
+    if (t) setTheme(t);
+  }, []);
+
+  const changeTheme = (newTheme: string) => {
+    setTheme(newTheme);
+    localStorage.setItem("audio_truyen_theme", newTheme);
+    setThemeOpen(false);
+  };
 
   const fetchTruyen = async (targetUrl: string) => {
     if (!targetUrl) return;
@@ -43,83 +61,64 @@ export default function Home() {
     fetchTruyen(nextUrl);
   };
 
+  // Khởi tạo Lõi Phần Cứng: Audio Node
+  const audioState = useAudioPlayer(truyenData?.title, url, handleNextChapter);
+
+  // Đóng gói Props đẩy xuống Theme render
+  const themeProps = {
+    url,
+    setUrl,
+    loading,
+    error,
+    truyenData,
+    fetchTruyen,
+    handleNextChapter,
+    onBack: () => setTruyenData(null),
+    audioState,
+    setThemeOpen
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-slate-950 text-gray-100 relative overflow-hidden font-sans">
-      {/* Cầu Quang Phổ (Orbs) làm nền Glassmorphism */}
-      <div className="absolute top-1/4 left-[10%] w-80 h-80 bg-indigo-600/30 rounded-full mix-blend-screen filter blur-[100px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-1/4 right-[10%] w-96 h-96 bg-[#ff6600]/20 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent pointer-events-none" />
-
-      <div className="w-full max-w-[400px] bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] relative z-10 flex flex-col justify-between" style={{ minHeight: "750px" }}>
-
-        {/* Header (Chỉ hiện khi chưa nhập link) */}
-        {!truyenData && (
-          <div className="p-8 pb-4 flex flex-col items-center mt-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#ff6600] to-pink-600 rounded-3xl flex items-center justify-center shadow-lg shadow-[#ff6600]/30 mb-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/20 backdrop-blur-md" />
-              <Headphones size={36} className="text-white relative z-10" />
-            </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Nghe truyện chữ</h1>
-            <p className="text-gray-400 text-sm text-center font-medium px-4">Đọc auto mọi loại truyện (Wattpad, TruyenFull, Metruyenchu...)</p>
-          </div>
-        )}
-
-        {/* Cột mốc nội dung chính */}
-        <div className="p-6 flex-1 flex flex-col justify-center">
-          {!truyenData ? (
-            <div className="space-y-6 w-full max-w-sm mx-auto">
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-300 flex items-center gap-2 ml-1">
-                  <LinkIcon size={16} className="text-[#ff6600]" /> Dán Link Truyện Nơi Đây
-                </label>
-                <div className="relative">
-                  <input
-                    type="url"
-                    className="w-full pl-5 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#ff6600]/50 transition-all text-white placeholder:text-gray-500 backdrop-blur-sm"
-                    placeholder="https://..."
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <Fingerprint size={20} className={url ? "text-[#ff6600]" : "text-gray-600"} />
-                  </div>
-                </div>
-              </div>
-
-              {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 backdrop-blur-md rounded-2xl text-red-400 text-sm font-medium text-center shadow-inner">
-                  {error}
-                </div>
-              )}
-
-              <button
-                onClick={() => fetchTruyen(url)}
-                disabled={loading || !url}
-                className="w-full py-4 mt-4 bg-white/10 hover:bg-white/20 border border-white/20 disabled:opacity-50 text-white rounded-2xl font-bold transition-all flex justify-center items-center gap-2 backdrop-blur-md relative overflow-hidden group"
+    <>
+      {/* KHÔNG THỂ BỊ NGẮT MẠCH: Thẻ audio luôn chìm dưới đáy không phụ thuộc vào Theme */}
+      <audio {...audioState.audioProps} />
+      
+      {/* MÀN HÌNH ĐỔI THEME TRÊN TOÀN CỤC */}
+      {themeOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#111125] border border-white/20 p-6 w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <h3 className="text-white font-bold text-center mb-6 tracking-widest uppercase">CHỌN PHONG CÁCH KHẾ ƯỚC</h3>
+            <div className="space-y-4">
+              <button 
+                onClick={() => changeTheme('glass')} 
+                className={`w-full p-4 border transition-all uppercase tracking-widest text-sm font-bold ${theme === 'glass' ? 'bg-white/20 border-white text-white' : 'border-white/20 text-white/50 hover:bg-white/10'}`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#ff6600]/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                {loading ? (
-                  <>
-                    <Loader2 className="animate-spin relative z-10" size={20} /> <span className="relative z-10">Đang vét máng dữ liệu...</span>
-                  </>
-                ) : (
-                  <>
-                    <BookOpen size={20} className="relative z-10" /> <span className="relative z-10 text-[#ff6600]">Nghe Audio Chứ Lì</span>
-                  </>
-                )}
+                1. Hệ Thống Pha Lê (Original)
+              </button>
+              <button 
+                onClick={() => changeTheme('retro1')} 
+                className={`w-full p-4 border transition-all uppercase tracking-widest text-sm font-bold ${theme === 'retro1' ? 'bg-[#ffb778]/20 border-[#ffb778] text-[#ffb778]' : 'border-[#ffb778]/30 text-[#ffb778]/50 hover:bg-[#ffb778]/10'}`}
+              >
+                2. Không Gian Nạp Thẻ (Retro 1)
+              </button>
+              <button 
+                onClick={() => changeTheme('retro2')} 
+                className={`w-full p-4 border transition-all uppercase tracking-widest text-sm font-bold ${theme === 'retro2' ? 'bg-[#00f0ff]/20 border-[#00f0ff] text-[#00f0ff]' : 'border-[#00f0ff]/30 text-[#00f0ff]/50 hover:bg-[#00f0ff]/10'}`}
+              >
+                3. Hầm Ngục Manhwa (Archive)
               </button>
             </div>
-          ) : (
-            <AudioPlayer
-              title={truyenData.title}
-              targetUrl={url}
-              nextUrl={truyenData.nextUrl}
-              onNextChapter={handleNextChapter}
-              onBack={() => setTruyenData(null)}
-            />
-          )}
+            <button onClick={() => setThemeOpen(false)} className="mt-8 w-full text-center text-white/30 hover:text-white text-xs font-bold tracking-widest transition-colors">
+              ĐÓNG [ X ]
+            </button>
+          </div>
         </div>
-      </div>
-    </main>
+      )}
+
+      {/* RENDER DỰA THEO STATE NHẰM GIỮ LUỒNG NHẠC MỘT CÁCH TRƠN TRU NHẤT */}
+      {theme === "glass" && <ThemeGlass {...themeProps} />}
+      {theme === "retro1" && <ThemeRetro1 {...themeProps} />}
+      {theme === "retro2" && <ThemeRetro2 {...themeProps} />}
+    </>
   );
 }

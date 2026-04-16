@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffdcc1",
+                        "on-primary-fixed-variant": "#6c3a00",
+                        "on-primary": "#4c2700",
+                        "on-tertiary-container": "#00464e",
+                        "secondary-fixed": "#e5deff",
+                        "secondary": "#c7bfff",
+                        "surface-container-high": "#28283d",
+                        "surface-dim": "#111125",
+                        "on-surface": "#e2e0fc",
+                        "surface-container-highest": "#333348",
+                        "on-secondary-fixed-variant": "#4433a4",
+                        "surface-bright": "#37374d",
+                        "on-secondary": "#2c148e",
+                        "outline": "#a48c7a",
+                        "surface-container-low": "#1a1a2e",
+                        "surface": "#111125",
+                        "primary": "#ffb778",
+                        "on-secondary-container": "#b8afff",
+                        "on-primary-container": "#603300",
+                        "on-background": "#e2e0fc",
+                        "secondary-fixed-dim": "#c7bfff",
+                        "inverse-primary": "#8e4e00",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#4635a7",
+                        "tertiary-fixed-dim": "#00daf3",
+                        "on-tertiary-fixed": "#001f24",
+                        "on-secondary-fixed": "#180065",
+                        "on-tertiary-fixed-variant": "#004f58",
+                        "surface-variant": "#333348",
+                        "tertiary-container": "#00bbd0",
+                        "tertiary-fixed": "#9cf0ff",
+                        "on-primary-fixed": "#2e1500",
+                        "primary-container": "#fb8f00",
+                        "surface-container": "#1e1e32",
+                        "inverse-on-surface": "#2f2e43",
+                        "on-tertiary": "#00363d",
+                        "on-error-container": "#ffdad6",
+                        "background": "#111125",
+                        "outline-variant": "#564334",
+                        "on-surface-variant": "#ddc1ae",
+                        "tertiary": "#00daf3",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0c0c1f",
+                        "inverse-surface": "#e2e0fc",
+                        "primary-fixed-dim": "#ffb778",
+                        "surface-tint": "#ffb778"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #111125;
+            color: #e2e0fc;
+            font-family: 'Manrope', sans-serif;
+        }
+        .pixel-corners {
+            position: relative;
+        }
+        .pixel-corners::before, .pixel-corners::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border: 2px solid #ffb778;
+        }
+        .pixel-corners-tl::before { top: -4px; left: -4px; border-right: 0; border-bottom: 0; }
+        .pixel-corners-tr::after { top: -4px; right: -4px; border-left: 0; border-bottom: 0; }
+        .pixel-corners-bl::before { bottom: -4px; left: -4px; border-right: 0; border-top: 0; }
+        .pixel-corners-br::after { bottom: -4px; right: -4px; border-left: 0; border-top: 0; }
+        
+        .mana-bar-gradient {
+            background: linear-gradient(90deg, #00daf3 0%, #c7bfff 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen bg-background">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-4 h-16 w-full bg-[#111125] dark:bg-[#111125] rounded-none border-b-2 border-[#564334]/20 z-50">
+<div class="flex items-center gap-3">
+<button class="text-[#FF8C00] active:scale-95 duration-100 p-2 hover:bg-[#333348] transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-['Space_Grotesk'] uppercase tracking-tighter text-xl font-bold text-[#FF8C00] tracking-widest">CURRENT QUEST</h1>
+</div>
+<button class="text-[#FF8C00] active:scale-95 duration-100 p-2 hover:bg-[#333348] transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</header>
+<main class="flex-grow flex flex-col items-center px-6 py-8 max-w-2xl mx-auto w-full">
+<!-- Quest Info -->
+<div class="w-full mb-8 space-y-1">
+<div class="flex items-center gap-2 text-tertiary text-[10px] font-headline font-bold uppercase tracking-[0.2em]">
+<span class="material-symbols-outlined text-sm">auto_stories</span>
+                CHAPTER 42: THE ASCENSION
+            </div>
+<h2 class="text-3xl font-headline font-extrabold text-on-surface uppercase leading-tight tracking-tight">Người Trên Vạn Người</h2>
+<div class="text-primary/60 font-body text-sm font-medium">Bản Dịch: Thiên Môn Group</div>
+</div>
+<!-- Stylized Cover Art Section -->
+<div class="relative w-full aspect-square mb-10 group">
+<!-- Decorative Frame Brackets -->
+<div class="absolute -top-2 -left-2 w-6 h-6 border-t-4 border-l-4 border-primary z-10"></div>
+<div class="absolute -top-2 -right-2 w-6 h-6 border-t-4 border-r-4 border-primary z-10"></div>
+<div class="absolute -bottom-2 -left-2 w-6 h-6 border-b-4 border-l-4 border-primary z-10"></div>
+<div class="absolute -bottom-2 -right-2 w-6 h-6 border-b-4 border-r-4 border-primary z-10"></div>
+<!-- Cover Art Image Container -->
+<div class="w-full h-full bg-surface-container overflow-hidden relative shadow-2xl">
+<img class="w-full h-full object-cover mix-blend-lighten opacity-90 transition-transform duration-700 group-hover:scale-105" data-alt="Cinematic anime style illustration of a powerful celestial being standing on a cloud above a vast ancient city, glowing orange and blue lighting, epic atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgdsCVW2xLjc6LCw97pWdSYlAZE-ZnYcmc6zQ81lxU10sdtE6UMy8cU_NLbtOFsn_WHiId3pijCGFOZtfhRspUUa_1F0z0TKmDyaZtGwXjcdDspq6CmpFHb8nSL5y9t2FOC6K8DvK1HhVo3BKJ_Dke8xHA6M3gLegeN7JBaNZUBOfV92uxpEbzxAM_WLMufO1EGaXe390LYOwKMvf4GcJuL5GHIeoHKHBIlJSvNa6FPuTcMlnJ9d8B0FANccTqjHE8T3k0dldfUEQ"/>
+<!-- HUD Overlay Elements -->
+<div class="absolute top-4 right-4 bg-background/80 backdrop-blur-md px-3 py-1 border border-primary/30">
+<span class="font-headline text-[10px] text-tertiary font-bold tracking-widest">LIVE AUDIO</span>
+</div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-background to-transparent">
+<div class="flex justify-between items-end">
+<div class="bg-surface-container-highest px-3 py-1">
+<span class="font-headline text-[10px] text-primary font-bold">SLOT: 01</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Mana Bar (Progress Slider) -->
+<div class="w-full space-y-3 mb-10">
+<div class="flex justify-between items-end font-headline text-[11px] font-bold tracking-widest text-on-surface-variant">
+<div class="space-y-1">
+<div class="text-[9px] text-tertiary/60 uppercase">ELAPSED</div>
+<div>12:45</div>
+</div>
+<div class="space-y-1 text-right">
+<div class="text-[9px] text-tertiary/60 uppercase">REMAINING</div>
+<div>-18:20</div>
+</div>
+</div>
+<div class="relative h-4 bg-surface-container-highest w-full group cursor-pointer">
+<!-- Track -->
+<div class="absolute inset-0 border border-outline-variant/30"></div>
+<!-- Progress (Mana) -->
+<div class="mana-bar-gradient h-full w-[42%] relative">
+<div class="absolute right-0 top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_#fff]"></div>
+</div>
+<!-- Interactive Markers -->
+<div class="absolute top-0 left-1/2 w-px h-full bg-outline-variant/20"></div>
+</div>
+</div>
+<!-- Audio Controls -->
+<div class="flex items-center justify-between w-full mb-12">
+<button class="w-12 h-12 flex items-center justify-center text-primary/70 hover:text-primary transition-colors active:translate-y-1">
+<span class="material-symbols-outlined text-3xl">replay_10</span>
+</button>
+<div class="flex items-center gap-10">
+<button class="text-tertiary hover:text-white transition-colors active:translate-y-1">
+<span class="material-symbols-outlined text-4xl">skip_previous</span>
+</button>
+<!-- Execute Button (Play) -->
+<button class="w-24 h-24 bg-primary text-background flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,183,120,0.3)] hover:shadow-[0_0_40px_rgba(0,218,243,0.5)] active:scale-95 transition-all group relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span class="font-headline text-[10px] font-black uppercase mt-1 tracking-widest">EXECUTE</span>
+</button>
+<button class="text-tertiary hover:text-white transition-colors active:translate-y-1">
+<span class="material-symbols-outlined text-4xl">skip_next</span>
+</button>
+</div>
+<button class="w-12 h-12 flex items-center justify-center text-primary/70 hover:text-primary transition-colors active:translate-y-1">
+<span class="material-symbols-outlined text-3xl">forward_30</span>
+</button>
+</div>
+<!-- Dungeon Clear Prompt (Advance Button) -->
+<button class="w-full bg-surface-container-highest hover:bg-surface-bright border-2 border-primary/30 p-6 flex items-center justify-between group active:scale-[0.98] transition-all">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/10 border border-primary/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary group-hover:animate-pulse">bolt</span>
+</div>
+<div class="text-left">
+<div class="text-[10px] font-headline font-bold text-tertiary tracking-[0.3em] uppercase mb-1">PROCEED TO</div>
+<div class="text-lg font-headline font-black text-on-surface uppercase tracking-tight">NEXT CHAPTER</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl group-hover:translate-x-2 transition-transform">double_arrow</span>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-20 pb-safe bg-[#111125] dark:bg-[#111125] border-t-2 border-[#564334]/20">
+<a class="flex flex-col items-center justify-center text-[#ffb778]/60 p-2 hover:text-[#00daf3] active:translate-y-1 transition-all" href="#">
+<span class="material-symbols-outlined">fort</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">QUESTS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ffb778]/60 p-2 hover:text-[#00daf3] active:translate-y-1 transition-all" href="#">
+<span class="material-symbols-outlined">swords</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">EQUIP</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ffb778]/60 p-2 hover:text-[#00daf3] active:translate-y-1 transition-all" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">MAP</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#FF8C00] text-[#111125] rounded-none p-2 active:translate-y-1 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">LOG</span>
+</a>
+</nav>
+</body></html>
