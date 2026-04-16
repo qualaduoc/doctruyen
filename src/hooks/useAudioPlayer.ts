@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-export function useAudioPlayer(title: string | undefined, targetUrl: string, onNextChapter?: (n: string) => void) {
+export function useAudioPlayer(title: string | undefined, targetUrl: string, nextUrl: string | undefined | null, onNextChapter?: (n: string) => void) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -19,11 +19,13 @@ export function useAudioPlayer(title: string | undefined, targetUrl: string, onN
 
       navigator.mediaSession.setActionHandler("play", playAudio);
       navigator.mediaSession.setActionHandler("pause", pauseAudio);
-      if (onNextChapter) {
-         navigator.mediaSession.setActionHandler("nexttrack", () => onNextChapter("")); // handled externally by passing URL
+      if (onNextChapter && nextUrl) {
+         navigator.mediaSession.setActionHandler("nexttrack", () => onNextChapter(nextUrl));
+      } else {
+         navigator.mediaSession.setActionHandler("nexttrack", null);
       }
     }
-  }, [title]);
+  }, [title, nextUrl]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -79,6 +81,12 @@ export function useAudioPlayer(title: string | undefined, targetUrl: string, onN
     onLoadedMetadata: (e: any) => setDuration(e.currentTarget.duration),
     onPlay: () => setIsPlaying(true),
     onPause: () => setIsPlaying(false),
+    onEnded: () => {
+      setIsPlaying(false);
+      if (onNextChapter && nextUrl) {
+        onNextChapter(nextUrl);
+      }
+    },
     className: "hidden",
     preload: "auto"
   };

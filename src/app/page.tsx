@@ -64,7 +64,7 @@ export default function Home() {
   };
 
   // Khởi tạo Lõi Phần Cứng: Audio Node
-  const audioState = useAudioPlayer(truyenData?.title, url, handleNextChapter);
+  const audioState = useAudioPlayer(truyenData?.title, url, truyenData?.nextUrl, handleNextChapter);
 
   // Đóng gói Props đẩy xuống Theme render
   const themeProps = {
