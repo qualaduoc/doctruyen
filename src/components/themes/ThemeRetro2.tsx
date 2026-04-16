@@ -1,4 +1,4 @@
-import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward } from "lucide-react";
+import { Settings2, Loader2, Fingerprint, Play, Pause, SkipForward, ArrowLeft, RotateCcw, RotateCw, Gauge } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -18,7 +18,7 @@ export default function ThemeRetro2({
   url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, onBack, audioState, setThemeOpen
 }: ThemeProps) {
 
-  const { isPlaying, isBuffering, currentTime, duration, togglePlay, handleSeek } = audioState;
+  const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
   
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const remaining = duration - currentTime;
@@ -31,100 +31,74 @@ export default function ThemeRetro2({
             background-color: #08080f !important;
             color: #e2e0fc;
             font-family: 'Space Grotesk', 'Cinzel', sans-serif;
-            min-height: 100dvh;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
         .retro2-glass {
-            backdrop-filter: blur(24px);
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(20, 20, 35, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 240, 255, 0.1);
         }
-        .retro2-mana-glow {
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-        .vintage-corner {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            position: absolute;
-        }
-        .v-tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-width: 2px; border-left-width: 2px; }
-        .v-tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-width: 2px; border-right-width: 2px; }
-        .v-bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-width: 2px; border-left-width: 2px; }
-        .v-br { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-width: 2px; border-right-width: 2px; }
       `}} />
       
-      <div className="retro2-theme relative w-full h-[100dvh] font-sans selection:bg-[#00f0ff]/30">
-        <div className="absolute inset-0 z-0 opacity-40 bg-[radial-gradient(circle_at_50%_-20%,#004e58_0%,#08080f_70%)] pointer-events-none"></div>
-
-        <header className="relative z-50 flex justify-between items-center px-6 h-16 w-full border-b border-white/5 bg-transparent shrink-0">
-          <div className="flex items-center">
-             {truyenData ? (
-                <button onClick={onBack} className="text-white/40 hover:text-[#00f0ff] transition-colors uppercase text-xs tracking-widest font-bold">
-                  ◄ Return
+      <div className="retro2-theme w-full relative">
+        <header className="flex justify-between items-center px-4 pt-6 shrink-0 relative z-50">
+          <div className="flex items-center gap-3">
+             {truyenData && (
+                <button onClick={onBack} className="text-[#00f0ff] active:scale-95 duration-100 p-2 hover:bg-[#00f0ff]/10 transition-colors uppercase tracking-widest text-xs font-bold">
+                  ◄ Retour
                 </button>
-             ) : (
-                <span className="text-[10px] uppercase font-bold tracking-[0.4em] text-[#00f0ff]/60">ARCHIVE</span>
              )}
           </div>
-          <button onClick={() => setThemeOpen(true)} className="text-white/40 hover:text-[#00f0ff] transition-colors p-2">
+          <button onClick={() => setThemeOpen(true)} className="text-[#00f0ff] active:scale-95 duration-100 p-2 hover:bg-[#00f0ff]/10 transition-colors">
              <Settings2 size={24} />
           </button>
         </header>
 
-        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 w-full max-w-md mx-auto">
+        <main className="flex-1 flex flex-col items-center px-6 py-6 w-full max-w-lg mx-auto relative z-10">
           
           {/* INPUT MODE */}
           {!truyenData ? (
-             <div className="w-full space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                <div className="text-center">
-                   <h1 className="text-4xl font-serif font-bold text-white tracking-widest leading-none drop-shadow-lg mb-2">ARCHIVE</h1>
-                   <div className="h-px w-16 mx-auto bg-[#00f0ff]/40 mb-6" />
-                   <p className="text-[#00f0ff]/60 text-xs tracking-[0.2em] uppercase">Connect to source crystal</p>
+             <div className="w-full space-y-6">
+                <div className="text-center space-y-2 mb-10 w-full relative">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#00f0ff]/10 rounded-full mix-blend-screen filter blur-[40px]" />
+                   <h2 className="text-3xl font-bold uppercase tracking-widest text-white mt-10 z-10 relative font-['Cinzel']">CỬA ẢI BÍ CẢNH</h2>
+                   <p className="text-[#00f0ff] text-xs font-bold uppercase tracking-widest z-10 relative">Enter your token</p>
                 </div>
-
-                <div className="relative">
-                   <div className="absolute -inset-2 pointer-events-none opacity-50">
-                      <div className="vintage-corner v-tl !w-6 !h-6"></div>
-                      <div className="vintage-corner v-tr !w-6 !h-6"></div>
-                      <div className="vintage-corner v-bl !w-6 !h-6"></div>
-                      <div className="vintage-corner v-br !w-6 !h-6"></div>
-                   </div>
+                
+                <div className="relative border border-[#00f0ff]/30 p-2 bg-[#0a0a14]">
                    <input
                       type="url"
-                      className="w-full retro2-glass text-white px-6 py-5 outline-none placeholder:text-white/20 text-center font-mono text-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+                      className="w-full bg-[#05050a] text-white p-4 font-['Space_Grotesk'] text-sm outline-none placeholder:text-[#00f0ff]/30 shadow-inner"
                       placeholder="https://..."
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                    />
                 </div>
-
-                {error && <div className="text-red-400 text-xs text-center p-3 retro2-glass border-red-500/20">{error}</div>}
+                {error && <div className="text-red-400 text-xs text-center border border-red-900/50 p-2 font-mono bg-red-900/20 uppercase tracking-widest">{error}</div>}
                 
                 <button
                   onClick={() => fetchTruyen(url)}
                   disabled={loading || !url}
-                  className="w-full py-4 retro2-glass border border-[#00f0ff]/30 text-[#00f0ff] uppercase tracking-[0.3em] font-bold text-sm hover:bg-[#00f0ff]/10 active:scale-95 disabled:opacity-30 transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] py-5 font-bold text-lg uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-50 flex justify-center items-center gap-3 border border-[#00f0ff]/40 shadow-[0_0_20px_rgba(0,240,255,0.1)] hover:shadow-[0_0_30px_rgba(0,240,255,0.3)]"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : "INITIALIZE"}
+                   {loading ? <><Loader2 className="animate-spin" size={20} /> SYNCHRONIZING</> : "TIẾP CẬN BÍ CẢNH"}
                 </button>
              </div>
           ) : (
              /* AUDIO PLAYER MODE */
-             <div className="w-full flex-1 flex flex-col pt-4 pb-8 animate-in fade-in">
-                
-                {/* Visual Art Box */}
-                <div className="relative w-full aspect-[4/5] max-h-[45vh] group mb-auto">
-                   <div className="absolute -inset-3 pointer-events-none">
-                      <div className="vintage-corner v-tl"></div>
-                      <div className="vintage-corner v-tr"></div>
-                      <div className="vintage-corner v-bl"></div>
-                      <div className="vintage-corner v-br"></div>
-                   </div>
-                   <div className="w-full h-full relative retro2-glass shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col justify-between">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 pointer-events-none" />
+             <div className="w-full flex-1 flex flex-col justify-center animate-in fade-in pt-4">
+                <div className="w-full max-w-sm mx-auto flex-1 flex flex-col pb-4">
+                   
+                   <div className="relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-[#00f0ff]/10 group shrink-0 max-h-[35vh]">
+                      <div className="absolute inset-0 bg-[#0a0a15]">
+                         <div className="absolute inset-0 bg-gradient-to-t from-[#08080f] via-transparent to-transparent opacity-80 z-10" />
+                      </div>
+                      
+                      <div className="absolute inset-0 flex flex-col opacity-90 transition-opacity z-20">
                       
                       <div className="p-4 flex justify-between items-start z-20">
                          <div className="retro2-glass px-3 py-1 flex items-center gap-2 rounded-full">
@@ -133,22 +107,22 @@ export default function ThemeRetro2({
                          </div>
                       </div>
 
-                      <div className="p-6 relative z-20 text-center flex-1 flex flex-col items-center justify-center">
-                         <div className="text-7xl font-serif text-white/90 drop-shadow-[0_0_20px_#00f0ff] select-none">
+                      <div className="p-6 relative z-20 text-center flex-1 flex flex-col justify-center items-center">
+                         <div className="text-6xl font-['Cinzel'] text-white/90 drop-shadow-[0_0_30px_#00f0ff] select-none tracking-tighter">
                            {formatTime(currentTime)}
                          </div>
                       </div>
 
                       <div className="p-6 z-20 relative">
-                         <h2 className="text-3xl font-serif font-bold text-white tracking-tight leading-snug drop-shadow-lg line-clamp-2">{truyenData.title}</h2>
+                         <h2 className="text-xl sm:text-2xl font-['Cinzel'] font-bold text-white tracking-widest line-clamp-2">{truyenData.title}</h2>
                          <div className="h-px w-12 bg-[#00f0ff]/40 mt-3" />
                       </div>
                    </div>
                 </div>
 
                 {/* Controls Area */}
-                <div className="w-full mt-8">
-                   <div className="w-full flex justify-between items-center mb-6 text-[10px] font-bold tracking-widest text-white/30 px-2">
+                <div className="w-full mt-8 shrink-0">
+                   <div className="w-full flex justify-between items-center mb-6 text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[#00f0ff] uppercase">
                       <span>{formatTime(currentTime)}</span>
                       <div className="flex-grow mx-4 h-1 retro2-glass relative cursor-pointer group" onClick={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
@@ -156,33 +130,51 @@ export default function ThemeRetro2({
                           handleSeek(percent * duration);
                         }}>
                          <div className="absolute left-0 top-0 h-full bg-[#00f0ff] shadow-[0_0_10px_#00f0ff] transition-all" style={{ width: `${progressPercent}%` }}></div>
-                         {/* scrub grabber invisible layer */}
                          <input type="range" min="0" max={duration||100} value={currentTime} onChange={(e)=>handleSeek(parseFloat(e.target.value))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                       </div>
                       <span>-{formatTime(remaining)}</span>
                    </div>
 
-                   <div className="flex justify-center items-center gap-10">
-                      <button onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)} disabled={!truyenData.nextUrl} className="text-white/20 hover:text-[#00f0ff] disabled:opacity-20 active:scale-95 transition-all">
-                         <SkipForward className="transform rotate-180" size={24} />
+                   <div className="flex justify-between items-center gap-2 sm:gap-6 w-full">
+                      <button onClick={toggleSpeed} className="w-12 h-12 flex flex-col items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
+                         <Gauge size={18} className="mb-0.5" />
+                         <span className="text-[9px] font-black">{speed}x</span>
+                      </button>
+
+                      <button onClick={() => handleSeek(Math.max(0, currentTime - 10))} className="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
+                         <RotateCcw size={22} />
                       </button>
 
                       <button 
                          onClick={togglePlay}
                          disabled={isBuffering}
-                         className="relative w-24 h-24 rounded-full bg-[#00f0ff]/10 flex items-center justify-center retro2-mana-glow border border-[#00f0ff]/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                         className="relative w-20 h-20 rounded-full bg-[#00f0ff]/10 flex items-center justify-center text-white active:scale-95 transition-all disabled:opacity-50 group shadow-[0_0_30px_rgba(0,240,255,0.15)] hover:shadow-[0_0_40px_rgba(0,240,255,0.3)] shrink-0"
                       >
-                         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#00f0ff]/20 to-transparent blur-md"></div>
-                         {isBuffering ? <Loader2 size={36} className="text-[#00f0ff] animate-spin relative z-10" /> : isPlaying ? <Pause size={36} fill="currentColor" className="text-[#00f0ff] relative z-10" /> : <Play size={36} fill="currentColor" className="text-[#00f0ff] ml-2 relative z-10" />}
+                         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#00f0ff]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                         {isBuffering ? <Loader2 size={32} className="text-[#00f0ff] animate-spin" /> : isPlaying ? <Pause size={32} fill="currentColor" className="text-[#00f0ff]" /> : <Play size={32} fill="currentColor" className="ml-2 text-[#00f0ff]" />}
                       </button>
 
-                      <button onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)} disabled={!truyenData.nextUrl} className="text-white/20 hover:text-[#00f0ff] disabled:opacity-20 active:scale-95 transition-all">
-                         <SkipForward size={24} />
+                      <button onClick={() => handleSeek(Math.min(duration, currentTime + 10))} className="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
+                         <RotateCw size={22} />
+                      </button>
+
+                      <button onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)} className="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
+                         <SkipForward size={22} />
                       </button>
                    </div>
+                   
+                   {truyenData.nextUrl && (
+                      <button 
+                         onClick={() => handleNextChapter(truyenData.nextUrl)}
+                         className="w-full mt-8 py-4 retro2-glass border border-[#00f0ff]/20 text-[#00f0ff]/80 hover:text-[#00f0ff] font-['Cinzel'] tracking-widest text-xs uppercase flex justify-center items-center gap-3 active:scale-[0.98] transition-all rounded-xl"
+                      >
+                         CHUYỂN QUA CHƯƠNG KẾ <SkipForward size={16} />
+                      </button>
+                   )}
                 </div>
 
              </div>
+          </div>
           )}
         </main>
       </div>

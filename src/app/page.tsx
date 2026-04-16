@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import ThemeGlass from "@/components/themes/ThemeGlass";
 import ThemeRetro1 from "@/components/themes/ThemeRetro1";
 import ThemeRetro2 from "@/components/themes/ThemeRetro2";
+import ThemeRetro3 from "@/components/themes/ThemeRetro3";
+import ThemeRetroRPG from "@/components/themes/ThemeRetroRPG";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 export default function Home() {
@@ -86,7 +88,7 @@ export default function Home() {
       {/* MÀN HÌNH ĐỔI THEME TRÊN TOÀN CỤC */}
       {themeOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-[#111125] border border-white/20 p-6 w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+          <div className="bg-[#111125] border border-white/20 p-6 w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh]">
             <h3 className="text-white font-bold text-center mb-6 tracking-widest uppercase">CHỌN PHONG CÁCH KHẾ ƯỚC</h3>
             <div className="space-y-4">
               <button 
@@ -107,6 +109,18 @@ export default function Home() {
               >
                 3. Hầm Ngục Manhwa (Archive)
               </button>
+              <button 
+                onClick={() => changeTheme('retro3')} 
+                className={`w-full p-4 border transition-all uppercase tracking-widest text-sm font-bold ${theme === 'retro3' ? 'bg-[#d4af37]/20 border-[#d4af37] text-[#d4af37]' : 'border-[#d4af37]/30 text-[#d4af37]/50 hover:bg-[#d4af37]/10'}`}
+              >
+                4. Tàng Kinh Các (Cổ Đại)
+              </button>
+              <button 
+                onClick={() => changeTheme('retrorpg')} 
+                className={`w-full p-4 border transition-all uppercase tracking-widest text-sm font-bold ${theme === 'retrorpg' ? 'bg-[#39ff14]/20 border-[#39ff14] text-[#39ff14]' : 'border-[#39ff14]/30 text-[#39ff14]/50 hover:bg-[#39ff14]/10'}`}
+              >
+                5. Dungeon Đỏ Đen (RPG)
+              </button>
             </div>
             <button onClick={() => setThemeOpen(false)} className="mt-8 w-full text-center text-white/30 hover:text-white text-xs font-bold tracking-widest transition-colors">
               ĐÓNG [ X ]
@@ -115,10 +129,21 @@ export default function Home() {
         </div>
       )}
 
-      {/* RENDER DỰA THEO STATE NHẰM GIỮ LUỒNG NHẠC MỘT CÁCH TRƠN TRU NHẤT */}
-      {theme === "glass" && <ThemeGlass {...themeProps} />}
-      {theme === "retro1" && <ThemeRetro1 {...themeProps} />}
-      {theme === "retro2" && <ThemeRetro2 {...themeProps} />}
+      {/* RENDER KHUNG BẢO VỆ MOBILE FRAME */}
+      <main className="flex min-h-[100dvh] flex-col items-center justify-center py-4 bg-slate-950 relative font-sans overflow-hidden">
+        {/* Background ambient light for Desktop */}
+        <div className="absolute top-1/4 left-[10%] w-80 h-80 bg-indigo-600/10 rounded-full mix-blend-screen filter blur-[100px] pointer-events-none hidden md:block" />
+        <div className="absolute bottom-1/4 right-[10%] w-96 h-96 bg-[#ff6600]/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none hidden md:block" />
+        
+        {/* KHUNG GIỚI HẠN 400px CHO MỌI THEME */}
+         <div className="w-full max-w-[400px] h-full sm:h-[90vh] sm:max-h-[850px] sm:min-h-[750px] rounded-none sm:rounded-[2.5rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] relative z-10 flex flex-col shrink-0 border-0 sm:border border-white/10" style={{ isolation: 'isolate' }}>
+            {theme === "glass" && <ThemeGlass {...themeProps} />}
+            {theme === "retro1" && <ThemeRetro1 {...themeProps} />}
+            {theme === "retro2" && <ThemeRetro2 {...themeProps} />}
+            {theme === "retro3" && <ThemeRetro3 {...themeProps} />}
+            {theme === "retrorpg" && <ThemeRetroRPG {...themeProps} />}
+         </div>
+      </main>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { Settings2, Loader2, BookOpen, Fingerprint, Play, Pause, SkipForward } from "lucide-react";
+import { Settings2, Loader2, BookOpen, Fingerprint, Play, Pause, SkipForward, RotateCcw, RotateCw, Gauge } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -18,7 +18,7 @@ export default function ThemeRetro1({
   url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, onBack, audioState, setThemeOpen
 }: ThemeProps) {
 
-  const { isPlaying, isBuffering, currentTime, duration, togglePlay, handleSeek } = audioState;
+  const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
   
   // Calculate percentage for mana bar
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -32,10 +32,11 @@ export default function ThemeRetro1({
             background-color: #111125 !important;
             color: #e2e0fc;
             font-family: 'Space Grotesk', sans-serif;
-            min-height: 100dvh;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
         .retro1-corner {
             position: relative;
@@ -56,7 +57,7 @@ export default function ThemeRetro1({
         }
       `}} />
       
-      <div className="retro1-theme relative w-full h-[100dvh]">
+      <div className="retro1-theme relative w-full h-full">
         {/* TopAppBar */}
         <header className="flex justify-between items-center px-4 h-16 w-full bg-[#111125] border-b-2 border-[#564334]/20 z-50 shrink-0">
           <div className="flex items-center gap-3">
@@ -76,7 +77,7 @@ export default function ThemeRetro1({
           </button>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-lg mx-auto relative overflow-hidden">
+        <main className="flex-1 flex flex-col items-center px-6 py-6 w-full max-w-lg mx-auto relative relative z-10">
           
           {/* INPUT MODE */}
           {!truyenData ? (
@@ -123,16 +124,16 @@ export default function ThemeRetro1({
                          <>▶ LIVE AUDIO</>
                       )}
                    </div>
-                   <h2 className="text-2xl font-extrabold text-[#e2e0fc] uppercase leading-tight tracking-tight line-clamp-3">
+                   <h2 className="text-xl font-extrabold text-[#e2e0fc] uppercase leading-tight tracking-tight line-clamp-2">
                       {truyenData.title}
                    </h2>
                 </div>
 
                 {/* Stylized Cover Art Section */}
-                <div className="relative w-full aspect-square max-h-[300px] mb-8 group mx-auto border-2 border-[#564334]/50 p-2">
+                <div className="relative w-full aspect-square max-h-[25vh] mb-6 group mx-auto border-2 border-[#564334]/50 p-2 shrink-0">
                    <div className="w-full h-full bg-[#1a1a2e] relative overflow-hidden flex items-center justify-center retro1-corner retro1-tl retro1-tr retro1-bl retro1-br">
                       <div className="absolute inset-0 bg-[#00daf3]/5 animate-pulse" />
-                      <div className="text-7xl font-mono text-[#00daf3]/90 drop-shadow-[0_0_15px_#00daf3]">
+                      <div className="text-5xl font-mono text-[#00daf3]/90 drop-shadow-[0_0_15px_#00daf3]">
                          {formatTime(currentTime)}
                       </div>
                       <div className="absolute bottom-4 left-4 bg-[#ffb778] text-[#111125] px-2 py-0.5 text-[10px] font-bold tracking-widest">SLOT 01</div>
@@ -140,7 +141,7 @@ export default function ThemeRetro1({
                 </div>
 
                 {/* Mana Bar */}
-                <div className="w-full space-y-3 mb-10">
+                <div className="w-full space-y-3 mb-8 shrink-0">
                    <div className="flex justify-between items-end text-[11px] font-bold tracking-widest text-[#a48c7a]">
                       <div className="space-y-1">
                          <div className="text-[9px] text-[#00daf3]/80 uppercase">ELAPSED</div>
@@ -169,35 +170,50 @@ export default function ThemeRetro1({
                 </div>
 
                 {/* Audio Controls */}
-                <div className="flex items-center justify-center gap-8 w-full mb-8">
+                <div className="flex items-center justify-between w-full mb-8 gap-2 shrink-0">
+                   <button 
+                      onClick={toggleSpeed}
+                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 flex flex-col items-center justify-center p-2"
+                   >
+                      <Gauge size={20} className="mb-1" />
+                      <span className="font-mono text-[9px] tracking-widest font-bold">{speed}x</span>
+                   </button>
+
                    <button 
                       onClick={() => handleSeek(Math.max(0, currentTime - 10))}
-                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 font-mono text-xs tracking-widest"
+                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 p-2"
                    >
-                      -10s
+                      <RotateCcw size={24} />
                    </button>
                    
                    <button 
                       onClick={togglePlay}
                       disabled={isBuffering}
-                      className="w-20 h-20 bg-[#ffb778] text-[#111125] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,183,120,0.3)] hover:shadow-[0_0_40px_rgba(0,218,243,0.5)] active:scale-95 transition-all disabled:opacity-50"
+                      className="w-16 h-16 sm:w-20 sm:h-20 bg-[#ffb778] text-[#111125] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(255,183,120,0.3)] hover:shadow-[0_0_40px_rgba(0,218,243,0.5)] active:scale-95 transition-all disabled:opacity-50 shrink-0"
                    >
-                      {isBuffering ? <Loader2 size={36} className="animate-spin" /> : isPlaying ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" />}
+                      {isBuffering ? <Loader2 size={32} className="animate-spin" /> : isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
                    </button>
 
                    <button 
                       onClick={() => handleSeek(Math.min(duration, currentTime + 10))}
-                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 font-mono text-xs tracking-widest"
+                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 p-2"
                    >
-                      +10s
+                      <RotateCw size={24} />
+                   </button>
+
+                   <button 
+                      onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)}
+                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 p-2"
+                   >
+                      <SkipForward size={24} />
                    </button>
                 </div>
 
-                {/* Next Chapter */}
+                {/* Next Chapter Module */}
                 {truyenData.nextUrl && (
                    <button 
                       onClick={() => handleNextChapter(truyenData.nextUrl)}
-                      className="w-full bg-[#1a1a2e] hover:bg-[#333348] border-2 border-[#ffb778]/50 p-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+                      className="w-full bg-[#1a1a2e] hover:bg-[#333348] border-2 border-[#ffb778]/50 p-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-all shrink-0"
                    >
                       <div className="text-[10px] font-bold text-[#00bbd0] tracking-[0.3em] uppercase">PROCEED TO NEXT MODULE</div>
                       <SkipForward size={16} className="text-[#ffb778]" />

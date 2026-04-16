@@ -13,7 +13,7 @@ export function useAudioPlayer(title: string | undefined, targetUrl: string, onN
     if (title && "mediaSession" in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
-        artist: "Omni-Scraper",
+        artist: "Đọc truyện chữ",
         album: `Audio-Truyen PWA`,
       });
 
@@ -66,7 +66,7 @@ export function useAudioPlayer(title: string | undefined, targetUrl: string, onN
 
   const audioProps = {
     ref: audioRef,
-    src: targetUrl ? `/api/tts-chapter?url=${encodeURIComponent(targetUrl)}` : "",
+    src: targetUrl ? `/api/tts-chapter?url=${encodeURIComponent(targetUrl)}` : undefined,
     autoPlay: !!targetUrl,
     onLoadStart: () => setIsBuffering(true),
     onWaiting: () => setIsBuffering(true),
