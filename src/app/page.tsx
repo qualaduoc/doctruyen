@@ -21,7 +21,7 @@ export default function Home() {
     try {
       const res = await fetch(`/api/truyen?url=${encodeURIComponent(targetUrl)}`);
       const payload = await res.json();
-      
+
       if (!payload.success) {
         throw new Error(payload.error || "Không thể tải dữ liệu");
       }
@@ -51,7 +51,7 @@ export default function Home() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent pointer-events-none" />
 
       <div className="w-full max-w-[400px] bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] relative z-10 flex flex-col justify-between" style={{ minHeight: "750px" }}>
-        
+
         {/* Header (Chỉ hiện khi chưa nhập link) */}
         {!truyenData && (
           <div className="p-8 pb-4 flex flex-col items-center mt-8">
@@ -59,7 +59,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-white/20 backdrop-blur-md" />
               <Headphones size={36} className="text-white relative z-10" />
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Omni-Scraper</h1>
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Nghe truyện chữ</h1>
             <p className="text-gray-400 text-sm text-center font-medium px-4">Đọc auto mọi loại truyện (Wattpad, TruyenFull, Metruyenchu...)</p>
           </div>
         )}
@@ -81,7 +81,7 @@ export default function Home() {
                     onChange={(e) => setUrl(e.target.value)}
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                     <Fingerprint size={20} className={url ? "text-[#ff6600]" : "text-gray-600"} />
+                    <Fingerprint size={20} className={url ? "text-[#ff6600]" : "text-gray-600"} />
                   </div>
                 </div>
               </div>
@@ -110,7 +110,7 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <AudioPlayer 
+            <AudioPlayer
               title={truyenData.title}
               targetUrl={url}
               nextUrl={truyenData.nextUrl}
