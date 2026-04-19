@@ -1,4 +1,4 @@
-import { Settings2, Loader2, BookOpen, Fingerprint, Play, Pause, SkipForward, RotateCcw, RotateCw, Gauge } from "lucide-react";
+import { Settings2, Loader2, BookOpen, Fingerprint, Play, Pause, SkipForward, SkipBack, RotateCcw, RotateCw, Gauge, RefreshCw } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -9,13 +9,16 @@ interface ThemeProps {
   truyenData: any;
   fetchTruyen: (url: string) => void;
   handleNextChapter: (url: string) => void;
+  handlePrevChapter: (url: string) => void;
+  handleRefresh: () => void;
   onBack: () => void;
   audioState: any;
   setThemeOpen: (b: boolean) => void;
+  history?: { title: string, url: string } | null;
 }
 
 export default function ThemeRetro1({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, onBack, audioState, setThemeOpen
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -111,6 +114,19 @@ export default function ThemeRetro1({
                 >
                    {loading ? <><Loader2 className="animate-spin" size={20} /> SYNCING...</> : "EXECUTE"}
                 </button>
+                
+                {history && (
+                   <div className="mt-8 border-2 border-[#1a1a2e] bg-[#111125] p-3 relative z-20">
+                      <div className="text-[9px] text-[#00daf3]/70 font-bold uppercase tracking-widest mb-2 border-b border-[#1a1a2e] pb-1">LAST SAVED STATE</div>
+                      <button 
+                         onClick={() => { setUrl(history.url); fetchTruyen(history.url); }}
+                         className="w-full text-left retro-btn bg-[#1a1a2e] border border-[#ffb778]/30 p-3 hover:bg-[#333348] transition-colors"
+                      >
+                         <div className="text-[#ffb778] font-bold text-sm line-clamp-1 mb-1">{history.title}</div>
+                         <div className="text-[#00daf3]/50 text-[10px] break-all line-clamp-1 font-mono">{history.url}</div>
+                      </button>
+                   </div>
+                )}
              </div>
           ) : (
              /* AUDIO PLAYER MODE */
@@ -124,9 +140,14 @@ export default function ThemeRetro1({
                          <>▶ LIVE AUDIO</>
                       )}
                    </div>
-                   <h2 className="text-xl font-extrabold text-[#e2e0fc] uppercase leading-tight tracking-tight line-clamp-2">
-                      {truyenData.title}
-                   </h2>
+                   <div className="flex items-start justify-center gap-3">
+                     <h2 className="text-xl font-extrabold text-[#e2e0fc] uppercase leading-tight tracking-tight pb-1">
+                        {truyenData.title}
+                     </h2>
+                     <button onClick={handleRefresh} className="p-2 text-[#564334] hover:text-[#ffb778] bg-[#1a1a2e] border border-[#564334] hover:bg-[#333348] active:scale-95 transition-all shrink-0" title="Reload audio">
+                       <RefreshCw size={14} />
+                     </button>
+                   </div>
                 </div>
 
                 {/* Stylized Cover Art Section */}
@@ -170,7 +191,7 @@ export default function ThemeRetro1({
                 </div>
 
                 {/* Audio Controls */}
-                <div className="flex items-center justify-between w-full mb-8 gap-2 shrink-0">
+                <div className="flex items-center justify-center w-full mb-8 gap-4 sm:gap-6 shrink-0">
                    <button 
                       onClick={toggleSpeed}
                       className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 flex flex-col items-center justify-center p-2"
@@ -200,25 +221,28 @@ export default function ThemeRetro1({
                    >
                       <RotateCw size={24} />
                    </button>
+                </div>
+
+                {/* Back/Next Modules */}
+                <div className="flex justify-between items-stretch gap-2 w-full mt-2 shrink-0">
+                   <button 
+                      onClick={() => truyenData.prevUrl && handlePrevChapter(truyenData.prevUrl)}
+                      disabled={!truyenData.prevUrl}
+                      className="flex-1 bg-[#1a1a2e] hover:bg-[#333348] border-2 border-[#564334]/50 p-3 flex flex-col items-center justify-center gap-1 active:scale-[0.98] transition-all disabled:opacity-30"
+                   >
+                      <SkipBack size={16} className="text-[#ffb778]" />
+                      <div className="text-[9px] font-bold text-[#a48c7a] tracking-[0.2em] uppercase">RET</div>
+                   </button>
 
                    <button 
                       onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)}
-                      className="text-[#ffb778]/70 hover:text-[#ffb778] active:scale-90 p-2"
-                   >
-                      <SkipForward size={24} />
-                   </button>
-                </div>
-
-                {/* Next Chapter Module */}
-                {truyenData.nextUrl && (
-                   <button 
-                      onClick={() => handleNextChapter(truyenData.nextUrl)}
-                      className="w-full bg-[#1a1a2e] hover:bg-[#333348] border-2 border-[#ffb778]/50 p-4 flex items-center justify-center gap-3 active:scale-[0.98] transition-all shrink-0"
+                      disabled={!truyenData.nextUrl}
+                      className="flex-[3] bg-[#1a1a2e] hover:bg-[#333348] border-2 border-[#ffb778]/50 p-3 flex items-center justify-center gap-3 active:scale-[0.98] transition-all disabled:opacity-30"
                    >
                       <div className="text-[10px] font-bold text-[#00bbd0] tracking-[0.3em] uppercase">PROCEED TO NEXT MODULE</div>
                       <SkipForward size={16} className="text-[#ffb778]" />
                    </button>
-                )}
+                </div>
              </div>
           )}
         </main>

@@ -1,4 +1,4 @@
-import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward, ArrowLeft, RotateCcw, RotateCw, Gauge } from "lucide-react";
+import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, RotateCcw, RotateCw, Gauge, RefreshCw } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -9,13 +9,16 @@ interface ThemeProps {
   truyenData: any;
   fetchTruyen: (url: string) => void;
   handleNextChapter: (url: string) => void;
+  handlePrevChapter: (url: string) => void;
+  handleRefresh: () => void;
   onBack: () => void;
   audioState: any;
   setThemeOpen: (b: boolean) => void;
+  history?: { title: string, url: string } | null;
 }
 
 export default function ThemeRetro3({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, onBack, audioState, setThemeOpen
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -26,7 +29,7 @@ export default function ThemeRetro3({
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Space+Grotesk:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Space+Grotesk:wght@300;400;700&display=swap');
         .retro3-theme {
             background-color: #050a1a !important;
             background-image: radial-gradient(circle at center, #111b36 0%, #0a1128 100%);
@@ -104,7 +107,7 @@ export default function ThemeRetro3({
         <div className="relative z-10 flex flex-col items-center pb-4 px-6 text-center shrink-0">
           <div className="text-[10px] font-['Space_Grotesk'] tracking-[0.4em] text-[#d4af37]/60 uppercase mb-2">Arcane Records</div>
           {!truyenData && (
-             <h2 className="font-['Cinzel'] text-3xl font-bold text-[#d4af37] tracking-wider uppercase drop-shadow-md">Tàng Kinh Các</h2>
+             <h2 className="font-['Philosopher'] text-3xl font-bold text-[#d4af37] tracking-wider uppercase drop-shadow-md">Tàng Kinh Các</h2>
           )}
         </div>
 
@@ -128,16 +131,34 @@ export default function ThemeRetro3({
                 <button
                   onClick={() => fetchTruyen(url)}
                   disabled={loading || !url}
-                  className="w-full py-4 text-[#050a1a] font-['Cinzel'] font-bold text-lg tracking-widest bg-gradient-to-r from-[#d4af37] to-[#8a7431] hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex justify-center items-center gap-3 relative"
+                  className="w-full py-4 text-[#050a1a] font-['Philosopher'] font-bold text-lg tracking-widest bg-gradient-to-r from-[#d4af37] to-[#8a7431] hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex justify-center items-center gap-3 relative"
                 >
                    {loading ? <><Loader2 className="animate-spin" size={20} /> Khai Khởi...</> : "MỞ QUYỂN TRỤC"}
                 </button>
+
+                {history && (
+                   <div className="mt-8 pt-6 border-t border-[#d4af37]/20 w-full relative z-20 animate-in fade-in">
+                      <div className="text-[10px] text-[#d4af37]/60 font-['Cormorant_Garamond'] uppercase tracking-[0.2em] mb-3 text-center italic">Hoặc Khôi Phục Ký Ức</div>
+                      <button 
+                         onClick={() => { setUrl(history.url); fetchTruyen(history.url); }}
+                         className="w-full text-left bg-[#d4af37]/5 border border-[#d4af37]/20 hover:border-[#d4af37]/50 p-3 transition-colors rounded-sm group relative overflow-hidden"
+                      >
+                         <div className="text-[#d4af37] font-['Philosopher'] font-bold text-sm tracking-wider line-clamp-1 mb-1 group-hover:text-[#f0ead6] transition-colors">{history.title}</div>
+                         <div className="text-[#8a7431] text-[10px] break-all line-clamp-1 font-['Space_Grotesk']">{history.url}</div>
+                      </button>
+                   </div>
+                )}
              </div>
           ) : (
              /* AUDIO PLAYER MODE */
              <div className="w-full flex-1 flex flex-col justify-center animate-in fade-in">
                 
-                <h2 className="font-['Cinzel'] text-2xl font-bold text-[#d4af37] tracking-wider uppercase drop-shadow-md text-center line-clamp-3 mb-2">{truyenData.title}</h2>
+                <div className="flex items-start justify-center gap-2 mb-2 w-full px-4">
+                  <h2 className="font-['Philosopher'] text-2xl font-bold text-[#d4af37] tracking-wider uppercase drop-shadow-md text-center leading-snug pb-1 flex-1">{truyenData.title}</h2>
+                  <button onClick={handleRefresh} className="p-1 text-[#8a7431] hover:text-[#d4af37] transition-colors shrink-0 mt-1" title="Load lại audio">
+                    <RefreshCw size={18} />
+                  </button>
+                </div>
                 <div className="font-['Cormorant_Garamond'] italic text-[#8a7431] text-sm text-center mb-4">
                    {isBuffering ? "Đang luyện hoá âm thanh..." : "Vận tiêu hoàn tất"}
                 </div>
@@ -148,7 +169,7 @@ export default function ThemeRetro3({
                    <div className="filigree-corner corner-bl"></div>
                    <div className="filigree-corner corner-br"></div>
                    <div className="gold-filigree w-full h-full p-1 bg-[#050a1a] overflow-hidden shadow-2xl flex items-center justify-center">
-                      <div className="text-6xl font-['Cinzel'] text-[#d4af37]/90 drop-shadow-[0_0_15px_#d4af37] select-none">
+                      <div className="text-6xl font-['Philosopher'] text-[#d4af37]/90 drop-shadow-[0_0_15px_#d4af37] select-none">
                          {formatTime(currentTime)}
                       </div>
                    </div>
@@ -192,12 +213,27 @@ export default function ThemeRetro3({
                       </button>
                    </div>
 
-                   {truyenData.nextUrl && (
-                      <button onClick={() => handleNextChapter(truyenData.nextUrl)} className="group flex flex-col items-center gap-2 active:translate-y-1 transition-all mt-4">
-                         <div className="text-[10px] font-['Cinzel'] text-[#d4af37] tracking-[0.3em] uppercase opacity-70 group-hover:opacity-100 transition-opacity">Khứ Vãng Kế Tiếp</div>
-                         <SkipForward className="text-[#d4af37] text-2xl group-hover:translate-y-1 transition-transform" />
-                      </button>
-                   )}
+                   <div className="flex justify-between items-start w-full px-2 sm:px-6 mt-4">
+                     <button 
+                       onClick={() => truyenData.prevUrl && handlePrevChapter(truyenData.prevUrl)}
+                       disabled={!truyenData.prevUrl}
+                       className="group flex flex-col items-center gap-2 active:translate-y-1 transition-all disabled:opacity-30"
+                     >
+                       <div className="text-[10px] sm:text-xs font-['Philosopher'] text-[#d4af37] tracking-[0.2em] sm:tracking-[0.3em] uppercase opacity-70 group-hover:opacity-100 transition-opacity">Hồi Quy Phía Trước</div>
+                       <SkipBack className="text-[#d4af37] text-2xl group-hover:translate-y-1 transition-transform" />
+                     </button>
+                     
+                     <div className="flex-1" />
+                     
+                     <button 
+                       onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)}
+                       disabled={!truyenData.nextUrl}
+                       className="group flex flex-col items-center gap-2 active:translate-y-1 transition-all disabled:opacity-30"
+                     >
+                       <div className="text-[10px] sm:text-xs font-['Philosopher'] text-[#d4af37] tracking-[0.2em] sm:tracking-[0.3em] uppercase opacity-70 group-hover:opacity-100 transition-opacity">Khứ Vãng Kế Tiếp</div>
+                       <SkipForward className="text-[#d4af37] text-2xl group-hover:translate-y-1 transition-transform" />
+                     </button>
+                   </div>
                 </div>
              </div>
           )}

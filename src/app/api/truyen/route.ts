@@ -48,6 +48,57 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch url: ${response.status}`);
     };
 
+    // === XỬ LÝ ĐẶC BIỆT CSR APP (VD: linhdi.vn) BẰNG JINA AI ===
+    if (url.includes("linhdi.vn")) {
+      const jinaUrl = `https://r.jina.ai/${url}`;
+      const jinaResponse = await fetch(jinaUrl, {
+        headers: {
+          "Accept": "application/json",
+          "X-Return-Format": "markdown"
+        }
+      });
+      if (jinaResponse.ok) {
+        const payload = await jinaResponse.json();
+        if (payload.data && payload.data.text) {
+          let title = payload.data.title || "Chương Truyện";
+          title = title.replace(/\s*-\s*Linh D.*$/i, "").replace("Chương 1: Chương 1:", "Chương 1:").trim();
+          
+          let nextUrl = null;
+          let prevUrl = null;
+          
+          // Tính Next / Prev dựa vào slug 'chuong-[number]'
+          const match = url.match(/(.*\/)?chuong-(\d+)(.*)/i);
+          if (match) {
+            const base = match[1] || "";
+            const current = parseInt(match[2]);
+            const tail = match[3] || "";
+            if (current > 1) {
+               prevUrl = `${base}chuong-${current - 1}${tail}`;
+            }
+            nextUrl = `${base}chuong-${current + 1}${tail}`;
+          }
+
+          let fullText = payload.data.text
+             .split('\n')
+             .filter((line: string) => line.trim() && line.trim() !== 'Aa')
+             .join('\n\n');
+
+          const chunks = chunkText(fullText, 200);
+
+          return NextResponse.json({
+            success: true,
+            data: {
+              title,
+              chunks,
+              nextUrl,
+              prevUrl,
+              fullTextLength: fullText.length,
+            },
+          });
+        }
+      }
+    }
+
     const html = await fetchWithFallback(url);
     const $ = cheerio.load(html);
 
@@ -61,10 +112,25 @@ export async function GET(request: NextRequest) {
       .replace(/\s*\|\s*Truyện.*$/i, "")
       .trim();
 
-    // 2. Tối ưu Nút Next (Nhiều keyword hơn)
     let nextUrl = "";
+    let prevUrl = "";
     $("a").each((_: number, el: any) => {
       const linkText = $(el).text().toLowerCase().trim();
+      const href = $(el).attr("href");
+      
+      if (!href || href === "#" || href.includes("javascript")) return;
+      
+      let finalUrl = "";
+      if (href.startsWith("http")) {
+        finalUrl = href;
+      } else if (href.startsWith("/")) {
+        const baseUrl = new URL(url).origin;
+        finalUrl = `${baseUrl}${href}`;
+      } else {
+        const baseUrl = new URL(url).origin;
+        finalUrl = baseUrl + "/" + href;
+      }
+
       if (
         linkText === "chương tiếp" ||
         linkText === "chương sau" ||
@@ -75,18 +141,18 @@ export async function GET(request: NextRequest) {
         linkText === "next chapter" ||
         linkText.includes("chương kế")
       ) {
-        const href = $(el).attr("href");
-        if (href && href !== "#" && !href.includes("javascript")) {
-          if (href.startsWith("http")) {
-            nextUrl = href;
-          } else if (href.startsWith("/")) {
-            const baseUrl = new URL(url).origin;
-            nextUrl = `${baseUrl}${href}`;
-          } else {
-            const baseUrl = new URL(url).origin;
-            nextUrl = baseUrl + "/" + href;
-          }
-        }
+        nextUrl = finalUrl;
+      }
+
+      if (
+        linkText === "chương trước" ||
+        linkText.includes("chương trước") ||
+        linkText === "<< trước" ||
+        linkText === "trước" ||
+        linkText === "prev chapter" ||
+        linkText === "previous chapter"
+      ) {
+        prevUrl = finalUrl;
       }
     });
 
@@ -174,6 +240,7 @@ export async function GET(request: NextRequest) {
         title,
         chunks,
         nextUrl: nextUrl || null,
+        prevUrl: prevUrl || null,
         fullTextLength: fullText.length,
       },
     });

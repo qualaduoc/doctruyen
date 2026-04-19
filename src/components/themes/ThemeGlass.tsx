@@ -1,4 +1,4 @@
-import { Headphones, Loader2, Link as LinkIcon, BookOpen, Fingerprint, Play, Pause, SkipForward, ArrowLeft, Gauge, Activity, Settings2, RotateCcw, RotateCw } from "lucide-react";
+import { Headphones, Loader2, Link as LinkIcon, BookOpen, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, Gauge, Activity, Settings2, RotateCcw, RotateCw, RefreshCw } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -9,13 +9,16 @@ interface ThemeProps {
   truyenData: any;
   fetchTruyen: (url: string) => void;
   handleNextChapter: (url: string) => void;
+  handlePrevChapter: (url: string) => void;
+  handleRefresh: () => void;
   onBack: () => void;
   audioState: any;
   setThemeOpen: (b: boolean) => void;
+  history?: { title: string, url: string } | null;
 }
 
 export default function ThemeGlass({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, onBack, audioState, setThemeOpen
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, speed, currentTime, duration, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -83,6 +86,19 @@ export default function ThemeGlass({
                   <><BookOpen size={20} className="relative z-10" /> <span className="relative z-10 text-[#ff6600]">Nghe Audio Chứ Lì</span></>
                 )}
               </button>
+
+              {history && (
+                 <div className="pt-4 border-t border-white/10 w-full relative z-20 animate-in fade-in slide-in-from-bottom-2">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center mb-3">Hoặc tiếp tục nghe</p>
+                    <button 
+                      onClick={() => { setUrl(history.url); fetchTruyen(history.url); }}
+                      className="w-full text-left p-4 bg-white/5 hover:bg-white/10 border border-[#ff6600]/30 rounded-2xl transition-all shadow-lg group relative overflow-hidden flex flex-col gap-1"
+                    >
+                       <span className="text-[#ff6600] font-bold text-xs uppercase tracking-wider group-hover:text-[#ff8833] transition-colors line-clamp-1">{history.title}</span>
+                       <span className="text-gray-400 text-[10px] line-clamp-1">{history.url}</span>
+                    </button>
+                 </div>
+              )}
             </div>
           </div>
         ) : (
@@ -129,8 +145,13 @@ export default function ThemeGlass({
               </div>
 
               <div className="text-center w-full px-2 min-h-0 overflow-y-auto">
-                <h2 className="text-xl sm:text-2xl font-bold text-white line-clamp-3 leading-snug drop-shadow-md">{truyenData.title}</h2>
-                <p className="text-white/40 text-[10px] sm:text-sm mt-2 font-medium uppercase tracking-widest">{formatTime(duration)} Tổng thời lượng</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug drop-shadow-md pb-2">{truyenData.title}</h2>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <p className="text-white/40 text-[10px] sm:text-sm font-medium uppercase tracking-widest">{formatTime(duration)} Tổng thời lượng</p>
+                  <button onClick={handleRefresh} className="p-1 hover:bg-white/10 rounded-full text-white/50 hover:text-[#ff6600] transition-colors" title="Load lại audio">
+                    <RefreshCw size={14} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -158,7 +179,7 @@ export default function ThemeGlass({
                      className="w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 rounded-full flex flex-col items-center justify-center text-[#ff6600] transition-all shadow-lg shrink-0"
                    >
                      <Gauge size={16} className="mb-0.5 opacity-80" />
-                     <span className="text-[9px] font-black">{speed}x</span>
+                     <span className="text-[9px] font-black leading-none">{speed}x</span>
                    </button>
    
                    <button 
@@ -189,13 +210,23 @@ export default function ThemeGlass({
                    >
                      <RotateCw size={18} className="opacity-80" />
                    </button>
-   
-                   <button 
-                     onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)}
-                     className="w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-full flex items-center justify-center transition-all shadow-lg shrink-0"
-                   >
-                     <SkipForward size={18} className="opacity-80" />
-                   </button>
+                 </div>
+
+                 <div className="flex justify-between items-center gap-4 w-full mt-2">
+                    <button
+                       onClick={() => truyenData.prevUrl && handlePrevChapter(truyenData.prevUrl)}
+                       disabled={!truyenData.prevUrl}
+                       className="flex-1 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-2xl flex items-center justify-center transition-all shadow-lg disabled:opacity-30 gap-2 font-semibold text-sm"
+                    >
+                       <SkipBack size={18} /> Lùi Chương
+                    </button>
+                    <button
+                       onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)}
+                       disabled={!truyenData.nextUrl}
+                       className="flex-1 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-[#ff6600] rounded-2xl flex items-center justify-center transition-all shadow-lg disabled:opacity-30 gap-2 font-bold text-sm"
+                    >
+                       Chuyển Chương <SkipForward size={18} />
+                    </button>
                  </div>
               </div>
 

@@ -16,16 +16,25 @@ export default function Home() {
     title: string;
     chunks: string[];
     nextUrl: string | null;
+    prevUrl: string | null;
   } | null>(null);
 
   // Giao diện (Theme)
   const [theme, setTheme] = useState("glass");
   const [themeOpen, setThemeOpen] = useState(false);
+  const [history, setHistory] = useState<{title: string, url: string} | null>(null);
 
   useEffect(() => {
     // Load ưu tiên theme từ máy
     const t = localStorage.getItem("audio_truyen_theme");
     if (t) setTheme(t);
+
+    const h = localStorage.getItem("audio_truyen_history");
+    if (h) {
+      try {
+        setHistory(JSON.parse(h));
+      } catch(e) {}
+    }
   }, []);
 
   const changeTheme = (newTheme: string) => {
@@ -50,8 +59,14 @@ export default function Home() {
         title: payload.data.title,
         chunks: payload.data.chunks,
         nextUrl: payload.data.nextUrl,
+        prevUrl: payload.data.prevUrl,
       });
       setUrl(targetUrl);
+
+      const navHistory = { title: payload.data.title, url: targetUrl };
+      setHistory(navHistory);
+      localStorage.setItem("audio_truyen_history", JSON.stringify(navHistory));
+      
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -61,6 +76,14 @@ export default function Home() {
 
   const handleNextChapter = (nextUrl: string) => {
     fetchTruyen(nextUrl);
+  };
+
+  const handlePrevChapter = (prevUrl: string) => {
+    fetchTruyen(prevUrl);
+  };
+
+  const handleRefresh = () => {
+    if (url) fetchTruyen(url);
   };
 
   // Khởi tạo Lõi Phần Cứng: Audio Node
@@ -75,9 +98,12 @@ export default function Home() {
     truyenData,
     fetchTruyen,
     handleNextChapter,
+    handlePrevChapter,
+    handleRefresh,
     onBack: () => setTruyenData(null),
     audioState,
-    setThemeOpen
+    setThemeOpen,
+    history
   };
 
   return (

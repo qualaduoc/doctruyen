@@ -1,4 +1,4 @@
-import { Settings2, Loader2, Fingerprint, Play, Pause, SkipForward, ArrowLeft, RotateCcw, RotateCw, Gauge } from "lucide-react";
+import { Settings2, Loader2, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, RotateCcw, RotateCw, Gauge, RefreshCw } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -9,13 +9,16 @@ interface ThemeProps {
   truyenData: any;
   fetchTruyen: (url: string) => void;
   handleNextChapter: (url: string) => void;
+  handlePrevChapter: (url: string) => void;
+  handleRefresh: () => void;
   onBack: () => void;
   audioState: any;
   setThemeOpen: (b: boolean) => void;
+  history?: { title: string, url: string } | null;
 }
 
 export default function ThemeRetro2({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, onBack, audioState, setThemeOpen
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -26,11 +29,11 @@ export default function ThemeRetro2({
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Cinzel:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Philosopher:wght@400;700&display=swap');
         .retro2-theme {
             background-color: #08080f !important;
             color: #e2e0fc;
-            font-family: 'Space Grotesk', 'Cinzel', sans-serif;
+            font-family: 'Space Grotesk', 'Philosopher', sans-serif;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -65,7 +68,7 @@ export default function ThemeRetro2({
              <div className="w-full space-y-6">
                 <div className="text-center space-y-2 mb-10 w-full relative">
                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#00f0ff]/10 rounded-full mix-blend-screen filter blur-[40px]" />
-                   <h2 className="text-3xl font-bold uppercase tracking-widest text-white mt-10 z-10 relative font-['Cinzel']">CỬA ẢI BÍ CẢNH</h2>
+                   <h2 className="text-3xl font-bold uppercase tracking-widest text-white mt-10 z-10 relative font-['Philosopher']">CỬA ẢI BÍ CẢNH</h2>
                    <p className="text-[#00f0ff] text-xs font-bold uppercase tracking-widest z-10 relative">Enter your token</p>
                 </div>
                 
@@ -87,6 +90,20 @@ export default function ThemeRetro2({
                 >
                    {loading ? <><Loader2 className="animate-spin" size={20} /> SYNCHRONIZING</> : "TIẾP CẬN BÍ CẢNH"}
                 </button>
+
+                {history && (
+                   <div className="mt-8 relative z-20 animate-in fade-in">
+                      <div className="text-[10px] text-[#00f0ff]/60 uppercase tracking-[0.3em] font-['Space_Grotesk'] border-b border-[#00f0ff]/20 pb-2 mb-4 text-center">Bản Ghi Gần Nhất</div>
+                      <button 
+                         onClick={() => { setUrl(history.url); fetchTruyen(history.url); }}
+                         className="w-full text-left retro2-glass border border-[#00f0ff]/30 p-4 hover:bg-[#00f0ff]/10 transition-colors shadow-[0_0_15px_rgba(0,240,255,0.1)] rounded-sm group relative overflow-hidden"
+                      >
+                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00f0ff] opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                         <div className="text-[#00f0ff] font-['Philosopher'] text-sm tracking-widest line-clamp-1 mb-1 shadow-[#00f0ff] drop-shadow-md pl-2 group-hover:text-white transition-colors">{history.title}</div>
+                         <div className="text-white/40 text-[10px] break-all line-clamp-1 font-['Space_Grotesk'] pl-2">{history.url}</div>
+                      </button>
+                   </div>
+                )}
              </div>
           ) : (
              /* AUDIO PLAYER MODE */
@@ -108,13 +125,18 @@ export default function ThemeRetro2({
                       </div>
 
                       <div className="p-6 relative z-20 text-center flex-1 flex flex-col justify-center items-center">
-                         <div className="text-6xl font-['Cinzel'] text-white/90 drop-shadow-[0_0_30px_#00f0ff] select-none tracking-tighter">
+                         <div className="text-6xl font-['Philosopher'] text-white/90 drop-shadow-[0_0_30px_#00f0ff] select-none tracking-tighter">
                            {formatTime(currentTime)}
                          </div>
                       </div>
 
                       <div className="p-6 z-20 relative">
-                         <h2 className="text-xl sm:text-2xl font-['Cinzel'] font-bold text-white tracking-widest line-clamp-2">{truyenData.title}</h2>
+                         <div className="flex items-start justify-between gap-4">
+                           <h2 className="text-xl sm:text-2xl font-['Philosopher'] font-bold text-white tracking-widest leading-snug pb-1 flex-1">{truyenData.title}</h2>
+                           <button onClick={handleRefresh} className="text-white/50 hover:text-[#00f0ff] rounded-full shrink-0 mt-1" title="Reload audio">
+                             <RefreshCw size={18} />
+                           </button>
+                         </div>
                          <div className="h-px w-12 bg-[#00f0ff]/40 mt-3" />
                       </div>
                    </div>
@@ -135,42 +157,47 @@ export default function ThemeRetro2({
                       <span>-{formatTime(remaining)}</span>
                    </div>
 
-                   <div className="flex justify-between items-center gap-2 sm:gap-6 w-full">
-                      <button onClick={toggleSpeed} className="w-12 h-12 flex flex-col items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
-                         <Gauge size={18} className="mb-0.5" />
-                         <span className="text-[9px] font-black">{speed}x</span>
+                   <div className="flex justify-center items-center gap-4 sm:gap-8 w-full">
+                      <button onClick={toggleSpeed} className="w-10 h-10 sm:w-12 sm:h-12 flex flex-col items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none shrink-0">
+                         <Gauge size={20} className="mb-0.5" />
+                         <span className="text-[9px] font-black leading-none">{speed}x</span>
                       </button>
 
-                      <button onClick={() => handleSeek(Math.max(0, currentTime - 10))} className="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
-                         <RotateCcw size={22} />
+                      <button onClick={() => handleSeek(Math.max(0, currentTime - 10))} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none shrink-0">
+                         <RotateCcw size={22} className="sm:w-6 sm:h-6" />
                       </button>
 
                       <button 
                          onClick={togglePlay}
                          disabled={isBuffering}
-                         className="relative w-20 h-20 rounded-full bg-[#00f0ff]/10 flex items-center justify-center text-white active:scale-95 transition-all disabled:opacity-50 group shadow-[0_0_30px_rgba(0,240,255,0.15)] hover:shadow-[0_0_40px_rgba(0,240,255,0.3)] shrink-0"
+                         className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#00f0ff]/10 flex items-center justify-center text-white active:scale-95 transition-all disabled:opacity-50 group shadow-[0_0_30px_rgba(0,240,255,0.15)] hover:shadow-[0_0_40px_rgba(0,240,255,0.3)] shrink-0"
                       >
                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#00f0ff]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                         {isBuffering ? <Loader2 size={32} className="text-[#00f0ff] animate-spin" /> : isPlaying ? <Pause size={32} fill="currentColor" className="text-[#00f0ff]" /> : <Play size={32} fill="currentColor" className="ml-2 text-[#00f0ff]" />}
+                         {isBuffering ? <Loader2 size={24} className="text-[#00f0ff] animate-spin" /> : isPlaying ? <Pause size={28} fill="currentColor" className="text-[#00f0ff]" /> : <Play size={28} fill="currentColor" className="ml-2 text-[#00f0ff]" />}
                       </button>
 
-                      <button onClick={() => handleSeek(Math.min(duration, currentTime + 10))} className="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
-                         <RotateCw size={22} />
-                      </button>
-
-                      <button onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)} className="w-12 h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none">
-                         <SkipForward size={22} />
+                      <button onClick={() => handleSeek(Math.min(duration, currentTime + 10))} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all outline-none shrink-0">
+                         <RotateCw size={22} className="sm:w-6 sm:h-6" />
                       </button>
                    </div>
                    
-                   {truyenData.nextUrl && (
+                   <div className="flex justify-between items-stretch gap-3 w-full mt-6">
                       <button 
-                         onClick={() => handleNextChapter(truyenData.nextUrl)}
-                         className="w-full mt-8 py-4 retro2-glass border border-[#00f0ff]/20 text-[#00f0ff]/80 hover:text-[#00f0ff] font-['Cinzel'] tracking-widest text-xs uppercase flex justify-center items-center gap-3 active:scale-[0.98] transition-all rounded-xl"
+                         onClick={() => truyenData.prevUrl && handlePrevChapter(truyenData.prevUrl)}
+                         disabled={!truyenData.prevUrl}
+                         className="flex-[1] py-4 retro2-glass border border-[#00f0ff]/20 text-[#00f0ff]/80 hover:text-[#00f0ff] font-['Philosopher'] tracking-widest text-xs uppercase flex justify-center items-center gap-2 active:scale-[0.98] transition-all rounded-xl disabled:opacity-30"
                       >
-                         CHUYỂN QUA CHƯƠNG KẾ <SkipForward size={16} />
+                         <SkipBack size={16} /> LÙI <span className="hidden sm:inline">CHƯƠNG</span>
                       </button>
-                   )}
+
+                      <button 
+                         onClick={() => truyenData.nextUrl && handleNextChapter(truyenData.nextUrl)}
+                         disabled={!truyenData.nextUrl}
+                         className="flex-[2] py-4 retro2-glass border border-[#00f0ff]/20 text-[#00f0ff]/80 hover:text-[#00f0ff] font-['Philosopher'] tracking-widest text-xs uppercase flex justify-center items-center gap-2 active:scale-[0.98] transition-all rounded-xl disabled:opacity-30"
+                      >
+                         CHUYỂN QUA <span className="hidden sm:inline">CHƯƠNG KẾ</span> <SkipForward size={16} />
+                      </button>
+                   </div>
                 </div>
 
              </div>
