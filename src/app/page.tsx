@@ -19,21 +19,43 @@ export default function Home() {
     prevUrl: string | null;
   } | null>(null);
 
-  // Giao diện (Theme)
   const [theme, setTheme] = useState("glass");
   const [themeOpen, setThemeOpen] = useState(false);
   const [history, setHistory] = useState<{title: string, url: string} | null>(null);
+
+  // Thêm state cho Tủ sách & Giọng đọc
+  const [bookshelfOpen, setBookshelfOpen] = useState(false);
+  const [fullHistory, setFullHistory] = useState<any[]>([]);
+  const [voice, setVoice] = useState("google");
+
+  // Thêm state cho preload UI
+  const [preloadDepth, setPreloadDepth] = useState<number>(1);
+  const [preloadUrls, setPreloadUrls] = useState<string[]>([]);
+  const [loadedAudios, setLoadedAudios] = useState<Set<string>>(new Set());
+  const [preloadStatus, setPreloadStatus] = useState<'idle'|'loading'|'done'>('idle');
 
   useEffect(() => {
     // Load ưu tiên theme từ máy
     const t = localStorage.getItem("audio_truyen_theme");
     if (t) setTheme(t);
 
-    const h = localStorage.getItem("audio_truyen_history");
-    if (h) {
+    const v = localStorage.getItem("audio_truyen_voice");
+    if (v) setVoice(v);
+
+    const d = localStorage.getItem("audio_preload_depth");
+    if (d) setPreloadDepth(Number(d));
+
+    const h2 = localStorage.getItem("audio_truyen_history_v2");
+    if (h2) {
       try {
-        setHistory(JSON.parse(h));
+        const arr = JSON.parse(h2);
+        if (Array.isArray(arr) && arr.length > 0) setHistory(arr[0]);
       } catch(e) {}
+    } else {
+      const h = localStorage.getItem("audio_truyen_history");
+      if (h) {
+        try { setHistory(JSON.parse(h)); } catch(e) {}
+      }
     }
   }, []);
 
@@ -41,6 +63,14 @@ export default function Home() {
     setTheme(newTheme);
     localStorage.setItem("audio_truyen_theme", newTheme);
     setThemeOpen(false);
+  };
+
+  const openBookshelf = () => {
+    try {
+      const arr = JSON.parse(localStorage.getItem("audio_truyen_history_v2") || "[]");
+      setFullHistory(Array.isArray(arr) ? arr : []);
+    } catch(e) { setFullHistory([]); }
+    setBookshelfOpen(true);
   };
 
   const fetchTruyen = async (targetUrl: string) => {
@@ -63,10 +93,24 @@ export default function Home() {
       });
       setUrl(targetUrl);
 
-      const navHistory = { title: payload.data.title, url: targetUrl };
+      // Cập nhật lịch sử với Garbage Collection (tối đa 50 truyện)
+      const bookIdMatch = targetUrl.match(/([^/]+)\/chuong/i);
+      const bookId = bookIdMatch ? bookIdMatch[1] : targetUrl;
+      const navHistory = { id: bookId, title: payload.data.title, url: targetUrl, time: Date.now() };
+
       setHistory(navHistory);
-      localStorage.setItem("audio_truyen_history", JSON.stringify(navHistory));
       
+      let hArr: any[] = [];
+      try {
+        hArr = JSON.parse(localStorage.getItem("audio_truyen_history_v2") || "[]");
+        if (!Array.isArray(hArr)) hArr = [];
+      } catch(e){}
+      
+      hArr = hArr.filter((item: any) => item.id !== bookId);
+      hArr.unshift(navHistory);
+      if (hArr.length > 50) hArr = hArr.slice(0, 50);
+      
+      localStorage.setItem("audio_truyen_history_v2", JSON.stringify(hArr));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -75,10 +119,12 @@ export default function Home() {
   };
 
   const handleNextChapter = (nextUrl: string) => {
+    setUrl(nextUrl);
     fetchTruyen(nextUrl);
   };
 
   const handlePrevChapter = (prevUrl: string) => {
+    setUrl(prevUrl);
     fetchTruyen(prevUrl);
   };
 
@@ -86,8 +132,53 @@ export default function Home() {
     if (url) fetchTruyen(url);
   };
 
+  // Logic chạy ngầm lấy text các chương tiếp theo để Preload
+  useEffect(() => {
+    let isCancelled = false;
+    const runPreload = async () => {
+      if (!truyenData?.nextUrl) {
+         setPreloadStatus('idle');
+         setPreloadUrls([]);
+         setLoadedAudios(new Set());
+         return;
+      }
+      
+      setPreloadStatus('loading');
+      setLoadedAudios(new Set());
+      const urlsToPreload = [truyenData.nextUrl];
+      setPreloadUrls([...urlsToPreload]);
+  
+      let currentHtmlUrl = truyenData.nextUrl;
+      for (let i = 1; i < preloadDepth; i++) {
+         try {
+           const res = await fetch(`/api/truyen?url=${encodeURIComponent(currentHtmlUrl)}`);
+           const data = await res.json();
+           if (isCancelled) return;
+           if (data.success && data.data.nextUrl) {
+              urlsToPreload.push(data.data.nextUrl);
+              setPreloadUrls([...urlsToPreload]);
+              currentHtmlUrl = data.data.nextUrl;
+           } else {
+              break;
+           }
+         } catch (e) {
+           break;
+         }
+      }
+    };
+  
+    runPreload();
+    return () => { isCancelled = true; };
+  }, [truyenData?.nextUrl, preloadDepth]);
+
+  useEffect(() => {
+     if (preloadUrls.length > 0 && loadedAudios.size === preloadUrls.length) {
+        setPreloadStatus('done');
+     }
+  }, [loadedAudios.size, preloadUrls.length]);
+
   // Khởi tạo Lõi Phần Cứng: Audio Node
-  const audioState = useAudioPlayer(truyenData?.title, url, truyenData?.nextUrl, handleNextChapter);
+  const audioState = useAudioPlayer(truyenData?.title, url, truyenData?.nextUrl, voice, handleNextChapter);
 
   // Đóng gói Props đẩy xuống Theme render
   const themeProps = {
@@ -111,16 +202,120 @@ export default function Home() {
       {/* KHÔNG THỂ BỊ NGẮT MẠCH: Thẻ audio luôn chìm dưới đáy không phụ thuộc vào Theme */}
       <audio {...audioState.audioProps} />
       
-      {/* CƠ CHẾ CHẠY NGẦM: Tự động preload tập tiếp theo để không phải chờ */}
-      {truyenData?.nextUrl && (
+      {/* CƠ CHẾ CHẠY NGẦM: Tự động preload nhiều tập tuỳ biến */}
+      {preloadUrls.map(u => (
         <audio 
-          src={`/api/tts-chapter?url=${encodeURIComponent(truyenData.nextUrl)}`} 
+          key={u}
+          src={`/api/tts-chapter?url=${encodeURIComponent(u)}&voice=${voice}`} 
           preload="auto" 
           className="hidden" 
           muted 
+          onCanPlayThrough={() => setLoadedAudios(prev => new Set(prev).add(u))}
         />
+      ))}
+
+      {/* GLOBAL UI OVERLAYS FOR PRELOAD */}
+      {url && (
+        <div className="fixed top-4 right-4 z-[60] flex flex-col gap-2 items-end pointer-events-none">
+          {preloadStatus !== 'idle' && (
+            <div className="bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-2 border border-white/10 shadow-lg pointer-events-auto transition-all">
+              {preloadStatus === 'loading' ? (
+                 <span className="flex items-center gap-2 text-xs text-white/70 font-medium tracking-wider">
+                   <svg className="animate-spin h-3 w-3 text-[#ff6600]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                   Tải sẵn {loadedAudios.size}/{preloadUrls.length} tập
+                 </span>
+              ) : (
+                 <span className="flex items-center gap-1 text-xs text-[#39ff14] font-medium tracking-wider">
+                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                   Đã tải {preloadUrls.length} tập
+                 </span>
+              )}
+            </div>
+          )}
+          <button 
+            onClick={() => {
+              const next = preloadDepth === 1 ? 3 : 1;
+              setPreloadDepth(next);
+              localStorage.setItem("audio_preload_depth", next.toString());
+            }}
+            className="bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-white/50 hover:text-white border border-white/10 pointer-events-auto transition-colors tracking-widest uppercase font-bold shadow-lg"
+          >
+            Mức Preload: {preloadDepth}
+          </button>
+          <select 
+            value={voice}
+            onChange={(e) => {
+              setVoice(e.target.value);
+              localStorage.setItem("audio_truyen_voice", e.target.value);
+            }}
+            className="bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-white/50 hover:text-white border border-white/10 pointer-events-auto transition-colors tracking-widest font-bold shadow-lg appearance-none text-right outline-none cursor-pointer"
+          >
+            <option value="google">Giọng Google (Mặc định)</option>
+            <option value="zalo_nam">Giọng Zalo Nam (Cần API Key)</option>
+            <option value="zalo_nu">Giọng Zalo Nữ (Cần API Key)</option>
+            <option value="viettel_nam">Viettel Nam (Cần API Key)</option>
+            <option value="viettel_nu">Viettel Nữ (Cần API Key)</option>
+          </select>
+        </div>
       )}
       
+      {/* NÚT TỦ SÁCH TOÀN CỤC KHI CHƯA VÀO TRUYỆN */}
+      {!url && (
+         <button 
+           onClick={openBookshelf}
+           className="fixed top-4 left-4 z-[60] px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md shadow-lg text-white font-bold flex items-center gap-2 hover:bg-white/20 transition-all group"
+         >
+            <svg className="w-5 h-5 text-[#ff6600] group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            Tủ Sách
+         </button>
+      )}
+
+      {/* MÀN HÌNH TỦ SÁCH */}
+      {bookshelfOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#111125] border border-white/20 p-6 w-full max-w-sm rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col max-h-[85vh]">
+            <h3 className="text-white font-bold text-center mb-6 tracking-widest uppercase flex items-center justify-center gap-2">
+              <svg className="w-6 h-6 text-[#ff6600]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              Tủ Sách Của Khầy
+            </h3>
+            
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.2) transparent' }}>
+              {fullHistory.length === 0 ? (
+                 <p className="text-center text-white/50 py-10 text-sm">Chưa có truyện nào trong tủ.</p>
+              ) : (
+                 fullHistory.map((item, idx) => {
+                    const dt = new Date(item.time || Date.now());
+                    const timeStr = `${dt.getDate()}/${dt.getMonth()+1} - ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+                    return (
+                      <button 
+                        key={item.id || idx}
+                        onClick={() => {
+                          setBookshelfOpen(false);
+                          setUrl(item.url);
+                          fetchTruyen(item.url);
+                        }}
+                        className="w-full text-left p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#ff6600]/50 rounded-2xl transition-all group flex flex-col gap-2"
+                      >
+                         <span className="text-white font-bold text-sm line-clamp-2 group-hover:text-[#ff6600] transition-colors">{item.title}</span>
+                         <div className="flex items-center justify-between mt-1">
+                            <span className="text-[#39ff14] text-[10px] tracking-widest uppercase bg-[#39ff14]/10 px-2.5 py-1 rounded-full border border-[#39ff14]/20 font-bold flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Phát Tiếp
+                            </span>
+                            <span className="text-white/30 text-[10px]">{timeStr}</span>
+                         </div>
+                      </button>
+                    )
+                 })
+              )}
+            </div>
+
+            <button onClick={() => setBookshelfOpen(false)} className="mt-6 w-full text-center text-white/30 hover:text-white text-xs font-bold tracking-widest transition-colors py-3 border border-white/10 rounded-full bg-white/5 hover:bg-white/10 uppercase">
+              Đóng Lại
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MÀN HÌNH ĐỔI THEME TRÊN TOÀN CỤC */}
       {themeOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">

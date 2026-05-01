@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing url parameter" }, { status: 400 });
   }
 
+  const voice = searchParams.get("voice") || "google";
+
   // ===== 1. CÀO TEXT TỪ WEBSITE =====
   let fullText = "";
   try {
@@ -121,11 +123,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to scrape novel text" }, { status: 500 });
   }
 
-  // ===== 2. BĂM CHUNKS VÀ GỌI GOOGLE TTS SONG SONG =====
+  // ===== 2. BĂM CHUNKS VÀ GỌI TTS SONG SONG =====
   try {
     const chunks = chunkText(fullText, 200);
     
-    // Tải Audio từ Google theo từng batch (Tránh 429 Too Many Requests)
     const audioBuffers: Buffer[] = [];
     const BATCH_SIZE = 5; // Xử lý 5 chunk cùng lúc
     
@@ -133,16 +134,76 @@ export async function GET(request: NextRequest) {
       const batch = chunks.slice(i, i + BATCH_SIZE);
       const batchResults = await Promise.all(
         batch.map(async (chunk) => {
-          const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=vi&client=tw-ob`;
-          const res = await fetch(googleUrl, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-              "Referer": "https://translate.google.com/",
-            },
-          });
-          if (!res.ok) throw new Error(`Google API error: ${res.status}`);
-          const arrayBuffer = await res.arrayBuffer();
-          return Buffer.from(arrayBuffer);
+          let buffer: Buffer | null = null;
+          
+          // 1. THỬ DÙNG ZALO AI (NẾU CÓ KEY VÀ CHỌN GIỌNG ZALO)
+          if (voice.startsWith("zalo_") && process.env.ZALO_API_KEY) {
+             const speaker_id = voice === "zalo_nam" ? 2 : 1; 
+             try {
+               const zaloRes = await fetch("https://api.zalo.ai/v1a/tts/synthesize", {
+                 method: "POST",
+                 headers: {
+                   "apikey": process.env.ZALO_API_KEY,
+                   "Content-Type": "application/x-www-form-urlencoded"
+                 },
+                 body: new URLSearchParams({ input: chunk, speaker_id: speaker_id.toString() })
+               });
+               const zaloData = await zaloRes.json();
+               if (zaloData.error_code === 0 && zaloData.data?.url) {
+                  // Zalo trả về link bất đồng bộ, cần chờ vài giây rồi tải
+                  for (let j = 0; j < 5; j++) {
+                     await new Promise(r => setTimeout(r, 1000));
+                     const audioRes = await fetch(zaloData.data.url);
+                     if (audioRes.ok) {
+                        const arrayBuffer = await audioRes.arrayBuffer();
+                        buffer = Buffer.from(arrayBuffer);
+                        break;
+                     }
+                  }
+               }
+             } catch(e) { console.warn("Zalo AI failed", e); }
+          }
+          
+          // 2. THỬ DÙNG VIETTEL AI (NẾU CÓ KEY VÀ CHỌN GIỌNG VIETTEL)
+          if (!buffer && voice.startsWith("viettel_") && process.env.VIETTEL_API_KEY) {
+             try {
+               const viettelRes = await fetch("https://viettelgroup.ai/voice/api/tts/v1/rest/syn", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "token": process.env.VIETTEL_API_KEY
+                  },
+                  body: JSON.stringify({
+                     text: chunk,
+                     voice: voice === "viettel_nam" ? "doanngocle" : "hcm-diemmy",
+                     id: "1",
+                     without_filter: false,
+                     speed: 1.0,
+                     tts_return_option: 2
+                  })
+               });
+               if (viettelRes.ok) {
+                  const arrayBuffer = await viettelRes.arrayBuffer();
+                  buffer = Buffer.from(arrayBuffer);
+               }
+             } catch(e) { console.warn("Viettel AI failed", e); }
+          }
+
+          // 3. FALLBACK: GOOGLE TTS MẶC ĐỊNH (HOÀN TOÀN MIỄN PHÍ)
+          if (!buffer) {
+            const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=vi&client=tw-ob`;
+            const res = await fetch(googleUrl, {
+              headers: {
+                "User-Agent": "Mozilla/5.0",
+                "Referer": "https://translate.google.com/",
+              },
+            });
+            if (!res.ok) throw new Error(`Google API error: ${res.status}`);
+            const arrayBuffer = await res.arrayBuffer();
+            buffer = Buffer.from(arrayBuffer);
+          }
+          
+          return buffer;
         })
       );
       audioBuffers.push(...batchResults);
