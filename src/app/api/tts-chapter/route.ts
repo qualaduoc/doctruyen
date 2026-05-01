@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "audio/mpeg",
         "Content-Length": finalAudioBuffer.length.toString(),
         "Accept-Ranges": "bytes", // Để HĐH hỗ trợ Tua
-        "Cache-Control": "public, s-maxage=31536000, stale-while-revalidate=86400", // Cache mạnh trên Vercel Edge 1 năm
+        "Cache-Control": "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400", // Cache mạnh trên Vercel Edge 1 năm và Browser
       },
     });
 

@@ -149,6 +149,7 @@ export default function Home() {
       setPreloadUrls([...urlsToPreload]);
   
       let currentHtmlUrl = truyenData.nextUrl;
+      // 1. Quét tìm các URL chương tiếp theo
       for (let i = 1; i < preloadDepth; i++) {
          try {
            const res = await fetch(`/api/truyen?url=${encodeURIComponent(currentHtmlUrl)}`);
@@ -165,11 +166,26 @@ export default function Home() {
            break;
          }
       }
+
+      // 2. Fetch ép tải toàn bộ MP3 vào Disk Cache để tránh bị lỗi Range cắt cụt của thẻ Audio
+      for (const u of urlsToPreload) {
+         if (isCancelled) return;
+         try {
+            const audioUrl = `/api/tts-chapter?url=${encodeURIComponent(u)}&voice=${voice}`;
+            // fetch sẽ tải hết file MP3, bắt CDN Vercel cache lại và trình duyệt cũng cache
+            const res = await fetch(audioUrl, { cache: "force-cache" });
+            if (res.ok && !isCancelled) {
+               setLoadedAudios(prev => new Set(prev).add(u));
+            }
+         } catch (e) {
+            console.warn("Preload MP3 failed:", e);
+         }
+      }
     };
   
     runPreload();
     return () => { isCancelled = true; };
-  }, [truyenData?.nextUrl, preloadDepth]);
+  }, [truyenData?.nextUrl, preloadDepth, voice]);
 
   useEffect(() => {
      if (preloadUrls.length > 0 && loadedAudios.size === preloadUrls.length) {
@@ -202,17 +218,7 @@ export default function Home() {
       {/* KHÔNG THỂ BỊ NGẮT MẠCH: Thẻ audio luôn chìm dưới đáy không phụ thuộc vào Theme */}
       <audio {...audioState.audioProps} />
       
-      {/* CƠ CHẾ CHẠY NGẦM: Tự động preload nhiều tập tuỳ biến */}
-      {preloadUrls.map(u => (
-        <audio 
-          key={u}
-          src={`/api/tts-chapter?url=${encodeURIComponent(u)}&voice=${voice}`} 
-          preload="auto" 
-          className="hidden" 
-          muted 
-          onCanPlayThrough={() => setLoadedAudios(prev => new Set(prev).add(u))}
-        />
-      ))}
+      {/* KHÔNG DÙNG THẺ AUDIO ĐỂ PRELOAD NỮA VÌ NÓ BỊ LỖI RANGE. ĐÃ DÙNG FETCH() Ở TRÊN */}
 
       {/* GLOBAL UI OVERLAYS FOR PRELOAD */}
       {url && (
