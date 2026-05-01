@@ -1,4 +1,4 @@
-import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward, SkipBack, RotateCcw, RotateCw, Gauge, RefreshCw } from "lucide-react";
+import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward, SkipBack, RotateCcw, RotateCw, Gauge, RefreshCw, BookOpen } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -15,10 +15,11 @@ interface ThemeProps {
   audioState: any;
   setThemeOpen: (b: boolean) => void;
   history?: { title: string, url: string } | null;
+  openBookshelf?: () => void;
 }
 
 export default function ThemeRetroRPG({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history, openBookshelf
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -92,9 +93,16 @@ export default function ThemeRetroRPG({
              )}
              {!truyenData && <span className="font-['Chakra_Petch'] text-[10px] text-[#39ff14]">DUNGEON IDLE</span>}
           </div>
-          <button onClick={() => setThemeOpen(true)} className="pixel-btn p-2 text-white relative z-50">
-             <Settings2 size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {openBookshelf && (
+               <button onClick={openBookshelf} className="pixel-btn p-2 text-[#39ff14] relative z-50" title="Tủ Sách">
+                 <BookOpen size={24} />
+               </button>
+            )}
+            <button onClick={() => setThemeOpen(true)} className="pixel-btn p-2 text-white relative z-50" title="Cài đặt Theme">
+               <Settings2 size={24} />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 flex flex-col items-center px-4 py-6 w-full max-w-md mx-auto relative z-10">

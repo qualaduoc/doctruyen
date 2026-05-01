@@ -15,10 +15,11 @@ interface ThemeProps {
   audioState: any;
   setThemeOpen: (b: boolean) => void;
   history?: { title: string, url: string } | null;
+  openBookshelf?: () => void;
 }
 
 export default function ThemeGlass({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history, openBookshelf
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, speed, currentTime, duration, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -124,7 +125,17 @@ export default function ThemeGlass({
                  </span>
               </div>
 
-              <div className="w-12 h-12 shrink-0"></div>
+              {openBookshelf ? (
+                 <button 
+                   onClick={openBookshelf}
+                   className="w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center text-[#ff6600] transition-all shadow-lg shrink-0"
+                   title="Tủ Sách"
+                 >
+                   <BookOpen size={20} />
+                 </button>
+              ) : (
+                 <div className="w-12 h-12 shrink-0"></div>
+              )}
             </div>
 
             {/* Album Artwork */}

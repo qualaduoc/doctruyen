@@ -1,4 +1,4 @@
-import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, RotateCcw, RotateCw, Gauge, RefreshCw } from "lucide-react";
+import { Settings2, Loader2, Link as LinkIcon, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, RotateCcw, RotateCw, Gauge, RefreshCw, BookOpen } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -15,10 +15,11 @@ interface ThemeProps {
   audioState: any;
   setThemeOpen: (b: boolean) => void;
   history?: { title: string, url: string } | null;
+  openBookshelf?: () => void;
 }
 
 export default function ThemeRetro3({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history, openBookshelf
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -99,9 +100,16 @@ export default function ThemeRetro3({
                 </button>
              )}
           </div>
-          <button onClick={() => setThemeOpen(true)} className="text-[#d4af37] active:scale-95 duration-100 p-2 hover:bg-[#d4af37]/10 transition-colors">
-             <Settings2 size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {openBookshelf && (
+               <button onClick={openBookshelf} className="text-[#d4af37] active:scale-95 duration-100 p-2 hover:bg-[#d4af37]/10 transition-colors" title="Tủ Sách">
+                 <BookOpen size={24} />
+               </button>
+            )}
+            <button onClick={() => setThemeOpen(true)} className="text-[#d4af37] active:scale-95 duration-100 p-2 hover:bg-[#d4af37]/10 transition-colors" title="Cài đặt Theme">
+               <Settings2 size={24} />
+            </button>
+          </div>
         </header>
 
         <div className="relative z-10 flex flex-col items-center pb-4 px-6 text-center shrink-0">

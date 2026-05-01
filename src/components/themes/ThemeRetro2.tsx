@@ -1,4 +1,4 @@
-import { Settings2, Loader2, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, RotateCcw, RotateCw, Gauge, RefreshCw } from "lucide-react";
+import { Settings2, Loader2, Fingerprint, Play, Pause, SkipForward, SkipBack, ArrowLeft, RotateCcw, RotateCw, Gauge, RefreshCw, BookOpen } from "lucide-react";
 import { formatTime } from "@/utils/formatTime";
 
 interface ThemeProps {
@@ -15,10 +15,11 @@ interface ThemeProps {
   audioState: any;
   setThemeOpen: (b: boolean) => void;
   history?: { title: string, url: string } | null;
+  openBookshelf?: () => void;
 }
 
 export default function ThemeRetro2({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history, openBookshelf
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -56,9 +57,16 @@ export default function ThemeRetro2({
                 </button>
              )}
           </div>
-          <button onClick={() => setThemeOpen(true)} className="text-[#00f0ff] active:scale-95 duration-100 p-2 hover:bg-[#00f0ff]/10 transition-colors">
-             <Settings2 size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {openBookshelf && (
+               <button onClick={openBookshelf} className="text-[#00f0ff] active:scale-95 duration-100 p-2 hover:bg-[#00f0ff]/10 transition-colors" title="Tủ Sách">
+                 <BookOpen size={24} />
+               </button>
+            )}
+            <button onClick={() => setThemeOpen(true)} className="text-[#00f0ff] active:scale-95 duration-100 p-2 hover:bg-[#00f0ff]/10 transition-colors" title="Cài đặt Theme">
+               <Settings2 size={24} />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 flex flex-col items-center px-6 py-6 w-full max-w-lg mx-auto relative z-10">

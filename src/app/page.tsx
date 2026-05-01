@@ -32,7 +32,13 @@ export default function Home() {
   const [preloadDepth, setPreloadDepth] = useState<number>(1);
   const [preloadUrls, setPreloadUrls] = useState<string[]>([]);
   const [loadedAudios, setLoadedAudios] = useState<Set<string>>(new Set());
+  const [loadedBytes, setLoadedBytes] = useState<number>(0);
   const [preloadStatus, setPreloadStatus] = useState<'idle'|'loading'|'done'>('idle');
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0MB';
+    return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+  };
 
   useEffect(() => {
     // Load ưu tiên theme từ máy
@@ -140,11 +146,13 @@ export default function Home() {
          setPreloadStatus('idle');
          setPreloadUrls([]);
          setLoadedAudios(new Set());
+         setLoadedBytes(0);
          return;
       }
       
       setPreloadStatus('loading');
       setLoadedAudios(new Set());
+      setLoadedBytes(0);
       const urlsToPreload = [truyenData.nextUrl];
       setPreloadUrls([...urlsToPreload]);
   
@@ -167,18 +175,34 @@ export default function Home() {
          }
       }
 
-      // 2. Fetch ép tải toàn bộ MP3 vào Disk Cache để tránh bị lỗi Range cắt cụt của thẻ Audio
+      // 2. Fetch ép tải toàn bộ MP3 vào Disk Cache với cơ chế Retry x3
       for (const u of urlsToPreload) {
          if (isCancelled) return;
-         try {
-            const audioUrl = `/api/tts-chapter?url=${encodeURIComponent(u)}&voice=${voice}`;
-            // fetch sẽ tải hết file MP3, bắt CDN Vercel cache lại và trình duyệt cũng cache
-            const res = await fetch(audioUrl, { cache: "force-cache" });
-            if (res.ok && !isCancelled) {
-               setLoadedAudios(prev => new Set(prev).add(u));
+         let retries = 3;
+         let success = false;
+
+         while (retries > 0 && !success) {
+            if (isCancelled) return;
+            try {
+               const audioUrl = `/api/tts-chapter?url=${encodeURIComponent(u)}&voice=${voice}`;
+               // fetch sẽ tải hết file MP3, gọi .blob() ép trình duyệt đợi tải xong hoàn toàn
+               const res = await fetch(audioUrl, { cache: "force-cache" });
+               if (res.ok) {
+                  const blob = await res.blob();
+                  if (!isCancelled) {
+                     setLoadedBytes(prev => prev + blob.size);
+                     setLoadedAudios(prev => new Set(prev).add(u));
+                  }
+                  success = true;
+               } else {
+                  retries--;
+                  if (retries > 0) await new Promise(r => setTimeout(r, 2000));
+               }
+            } catch (e) {
+               console.warn(`Preload MP3 failed (retries left: ${retries - 1}):`, e);
+               retries--;
+               if (retries > 0) await new Promise(r => setTimeout(r, 2000));
             }
-         } catch (e) {
-            console.warn("Preload MP3 failed:", e);
          }
       }
     };
@@ -207,10 +231,11 @@ export default function Home() {
     handleNextChapter,
     handlePrevChapter,
     handleRefresh,
-    onBack: () => setTruyenData(null),
+    onBack: () => { setTruyenData(null); setUrl(""); },
     audioState,
     setThemeOpen,
-    history
+    history,
+    openBookshelf
   };
 
   return (
@@ -228,12 +253,12 @@ export default function Home() {
               {preloadStatus === 'loading' ? (
                  <span className="flex items-center gap-2 text-xs text-white/70 font-medium tracking-wider">
                    <svg className="animate-spin h-3 w-3 text-[#ff6600]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                   Tải sẵn {loadedAudios.size}/{preloadUrls.length} tập
+                   Tải sẵn {loadedAudios.size}/{preloadUrls.length} tập ({formatBytes(loadedBytes)})
                  </span>
               ) : (
                  <span className="flex items-center gap-1 text-xs text-[#39ff14] font-medium tracking-wider">
                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
-                   Đã tải {preloadUrls.length} tập
+                   Đã tải {preloadUrls.length} tập ({formatBytes(loadedBytes)})
                  </span>
               )}
             </div>
@@ -266,7 +291,7 @@ export default function Home() {
       )}
       
       {/* NÚT TỦ SÁCH TOÀN CỤC KHI CHƯA VÀO TRUYỆN */}
-      {!url && (
+      {!truyenData && (
          <button 
            onClick={openBookshelf}
            className="fixed top-4 left-4 z-[60] px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md shadow-lg text-white font-bold flex items-center gap-2 hover:bg-white/20 transition-all group"

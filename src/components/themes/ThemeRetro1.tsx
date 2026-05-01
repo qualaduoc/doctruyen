@@ -15,10 +15,11 @@ interface ThemeProps {
   audioState: any;
   setThemeOpen: (b: boolean) => void;
   history?: { title: string, url: string } | null;
+  openBookshelf?: () => void;
 }
 
 export default function ThemeRetro1({
-  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history
+  url, setUrl, loading, error, truyenData, fetchTruyen, handleNextChapter, handlePrevChapter, handleRefresh, onBack, audioState, setThemeOpen, history, openBookshelf
 }: ThemeProps) {
 
   const { isPlaying, isBuffering, currentTime, duration, speed, togglePlay, toggleSpeed, handleSeek } = audioState;
@@ -75,9 +76,16 @@ export default function ThemeRetro1({
                 </h1>
              )}
           </div>
-          <button onClick={() => setThemeOpen(true)} className="text-[#FF8C00] active:scale-95 duration-100 p-2 hover:bg-[#333348] transition-colors">
-             <Settings2 size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {openBookshelf && (
+               <button onClick={openBookshelf} className="text-[#FF8C00] active:scale-95 duration-100 p-2 hover:bg-[#333348] transition-colors" title="Tủ Sách">
+                 <BookOpen size={24} />
+               </button>
+            )}
+            <button onClick={() => setThemeOpen(true)} className="text-[#FF8C00] active:scale-95 duration-100 p-2 hover:bg-[#333348] transition-colors" title="Cài đặt Theme">
+               <Settings2 size={24} />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 flex flex-col items-center px-6 py-6 w-full max-w-lg mx-auto relative relative z-10">
