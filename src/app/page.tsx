@@ -111,6 +111,16 @@ export default function Home() {
       {/* KHÔNG THỂ BỊ NGẮT MẠCH: Thẻ audio luôn chìm dưới đáy không phụ thuộc vào Theme */}
       <audio {...audioState.audioProps} />
       
+      {/* CƠ CHẾ CHẠY NGẦM: Tự động preload tập tiếp theo để không phải chờ */}
+      {truyenData?.nextUrl && (
+        <audio 
+          src={`/api/tts-chapter?url=${encodeURIComponent(truyenData.nextUrl)}`} 
+          preload="auto" 
+          className="hidden" 
+          muted 
+        />
+      )}
+      
       {/* MÀN HÌNH ĐỔI THEME TRÊN TOÀN CỤC */}
       {themeOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">

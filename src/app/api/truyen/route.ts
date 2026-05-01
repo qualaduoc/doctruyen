@@ -23,29 +23,45 @@ export async function GET(request: NextRequest) {
         "Upgrade-Insecure-Requests": "1"
       };
 
-      // Thử gọi trực tiếp nhưng fake header thật kỹ
-      let response = await fetch(target, { headers });
-      
-      if (response.ok) {
-        return await response.text();
+      const fetchWithTimeout = async (url: string, ms: number, opts = {}) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), ms);
+        try {
+          const res = await fetch(url, { ...opts, signal: controller.signal });
+          clearTimeout(timeout);
+          return res;
+        } catch (err) {
+          clearTimeout(timeout);
+          throw err;
+        }
+      };
+
+      try {
+        // Thử gọi trực tiếp nhưng fake header thật kỹ (timeout 5s)
+        let response = await fetchWithTimeout(target, 5000, { headers });
+        if (response.ok) {
+          const text = await response.text();
+          // Kiểm tra xem có phải trang Cloudflare challenge không
+          if (text.length > 5000 && !text.includes("Just a moment...")) {
+             return text;
+          }
+        }
+      } catch (err) {
+        console.warn(`Direct fetch error:`, err);
       }
 
-      // Nếu Vercel IP bị WAF chặn (403), bắt đầu dùng Fallback Proxy 1
-      if (response.status === 403 || response.status === 503) {
-         console.warn(`Direct fetch failed with ${response.status}. Using Proxy 1...`);
-         const proxy1 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`, { headers });
-         if (proxy1.ok) return await proxy1.text();
-
-         // Fallback Proxy 2 (Tôn ngộ không)
-         console.warn(`Proxy 1 failed. Using allorigins...`);
-         const proxy2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
-         if (proxy2.ok) {
-            const data = await proxy2.json();
-            if (data.contents) return data.contents;
-         }
+      // Fallback Proxy 1 (timeout 8s)
+      console.warn(`Direct fetch failed or blocked. Using Proxy 1...`);
+      try {
+        const proxy1 = await fetchWithTimeout(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`, 8000, { headers });
+        if (proxy1.ok) {
+           return await proxy1.text();
+        }
+      } catch (err) {
+        console.warn(`Proxy 1 error:`, err);
       }
 
-      throw new Error(`Failed to fetch url: ${response.status}`);
+      throw new Error(`Failed to fetch url from both direct and proxy`);
     };
 
     // === XỬ LÝ ĐẶC BIỆT CSR APP (VD: linhdi.vn) BẰNG JINA AI ===

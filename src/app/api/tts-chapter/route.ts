@@ -25,23 +25,42 @@ export async function GET(request: NextRequest) {
         "Upgrade-Insecure-Requests": "1"
       };
 
-      let response = await fetch(target, { headers });
-      if (response.ok) return await response.text();
+      const fetchWithTimeout = async (url: string, ms: number, opts = {}) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), ms);
+        try {
+          const res = await fetch(url, { ...opts, signal: controller.signal });
+          clearTimeout(timeout);
+          return res;
+        } catch (err) {
+          clearTimeout(timeout);
+          throw err;
+        }
+      };
 
-      if (response.status === 403 || response.status === 503) {
-         console.warn(`Direct fetch failed with ${response.status}. Using Proxy 1...`);
-         const proxy1 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`, { headers });
-         if (proxy1.ok) return await proxy1.text();
-
-         console.warn(`Proxy 1 failed. Using allorigins...`);
-         const proxy2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
-         if (proxy2.ok) {
-            const data = await proxy2.json();
-            if (data.contents) return data.contents;
-         }
+      try {
+        let response = await fetchWithTimeout(target, 5000, { headers });
+        if (response.ok) {
+          const text = await response.text();
+          if (text.length > 5000 && !text.includes("Just a moment...")) {
+             return text;
+          }
+        }
+      } catch (err) {
+        console.warn(`Direct fetch error:`, err);
       }
 
-      throw new Error(`Failed to fetch url: ${response.status}`);
+      console.warn(`Direct fetch failed or blocked. Using Proxy 1...`);
+      try {
+        const proxy1 = await fetchWithTimeout(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`, 8000, { headers });
+        if (proxy1.ok) {
+           return await proxy1.text();
+        }
+      } catch (err) {
+        console.warn(`Proxy 1 error:`, err);
+      }
+
+      throw new Error(`Failed to fetch url from both direct and proxy`);
     };
 
     const html = await fetchWithFallback(url);
@@ -106,21 +125,33 @@ export async function GET(request: NextRequest) {
   try {
     const chunks = chunkText(fullText, 200);
     
-    // Tải toàn bộ Audio từ Google (Giới hạn batch để tránh block API nếu quá dài, thường 1 chương < 100 đoạn)
-    const audioBuffers: Buffer[] = await Promise.all(
-      chunks.map(async (chunk) => {
-        const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=vi&client=tw-ob`;
-        const res = await fetch(googleUrl, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Referer": "https://translate.google.com/",
-          },
-        });
-        if (!res.ok) throw new Error("Google API error");
-        const arrayBuffer = await res.arrayBuffer();
-        return Buffer.from(arrayBuffer);
-      })
-    );
+    // Tải Audio từ Google theo từng batch (Tránh 429 Too Many Requests)
+    const audioBuffers: Buffer[] = [];
+    const BATCH_SIZE = 5; // Xử lý 5 chunk cùng lúc
+    
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batch = chunks.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map(async (chunk) => {
+          const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=vi&client=tw-ob`;
+          const res = await fetch(googleUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+              "Referer": "https://translate.google.com/",
+            },
+          });
+          if (!res.ok) throw new Error(`Google API error: ${res.status}`);
+          const arrayBuffer = await res.arrayBuffer();
+          return Buffer.from(arrayBuffer);
+        })
+      );
+      audioBuffers.push(...batchResults);
+      
+      // Delay nhỏ giữa các batch để Google không block IP
+      if (i + BATCH_SIZE < chunks.length) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
 
     // Kỹ thuật nối MP3 thần thánh (Buffer Concat)
     const finalAudioBuffer = Buffer.concat(audioBuffers);
@@ -132,7 +163,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "audio/mpeg",
         "Content-Length": finalAudioBuffer.length.toString(),
         "Accept-Ranges": "bytes", // Để HĐH hỗ trợ Tua
-        "Cache-Control": "public, max-age=86400", // Cache mạnh trên Vercel Edge 24h
+        "Cache-Control": "public, s-maxage=31536000, stale-while-revalidate=86400", // Cache mạnh trên Vercel Edge 1 năm
       },
     });
 
